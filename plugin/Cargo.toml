@@ -1,0 +1,26 @@
+[package]
+name = "leeway-protocol-mtr01-plugin"
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.94"
+license = "UNLICENSED"
+description = "Standalone official Leeway protocol plugin for mtr01-protocol."
+
+[lib]
+name = "leeway_mtr01_plugin"
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+base64 = "0.22"
+leeway-protocol-mtr01 = { path = "../protocol" }
+leeway-protocol-plugin-abi = { path = "../sdk/leeway-plugin-abi" }
+leeway-protocol-plugin-contracts = { path = "../sdk/leeway-plugin-contracts" }
+leeway-protocol-core = { path = "../sdk/leeway-protocol-core" }
+leeway-protocol-contracts = { path = "../sdk/leeway-protocol-contracts" }
+serde_json = "1"
+
+[dev-dependencies]
+hex = "0.4"
+
+[lints.rust]
+unsafe_code = "deny"

@@ -1,0 +1,85 @@
+{
+  "schemaVersion": 1,
+  "protocolId": "sensor-protocol",
+  "protocolVersion": "1.0.0",
+  "name": "Sensor Protocol",
+  "framing": {
+    "kind": "lengthPrefixed",
+    "maxFrameBytes": 256,
+    "lengthPrefix": {
+      "bytes": 2,
+      "endianness": "big",
+      "includesPrefix": false,
+      "includesChecksum": true
+    }
+  },
+  "checksum": {
+    "kind": "crc16Modbus",
+    "coverage": "beforeChecksum",
+    "placement": "append"
+  },
+  "messages": [
+    {
+      "id": "readSensor",
+      "match": [
+        {
+          "field": "command",
+          "operator": "equals",
+          "value": 3
+        }
+      ],
+      "fields": [
+        {
+          "name": "address",
+          "type": "uint8"
+        },
+        {
+          "name": "command",
+          "type": "uint8"
+        },
+        {
+          "name": "register",
+          "type": "uint16",
+          "endianness": "big"
+        }
+      ]
+    },
+    {
+      "id": "sensorData",
+      "match": [
+        {
+          "field": "command",
+          "operator": "equals",
+          "value": 4
+        }
+      ],
+      "fields": [
+        {
+          "name": "address",
+          "type": "uint8"
+        },
+        {
+          "name": "command",
+          "type": "uint8"
+        },
+        {
+          "name": "value",
+          "type": "uint16",
+          "endianness": "big"
+        }
+      ]
+    }
+  ],
+  "testVectors": [
+    {
+      "name": "read-register",
+      "messageId": "readSensor",
+      "values": {
+        "address": 1,
+        "command": 3,
+        "register": 10
+      },
+      "encodedHex": "00060103000a71df"
+    }
+  ]
+}

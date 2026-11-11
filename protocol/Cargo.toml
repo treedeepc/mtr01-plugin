@@ -1,0 +1,19 @@
+[package]
+name = "leeway-protocol-mtr01"
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.94"
+license = "UNLICENSED"
+description = "MTR01 BLE protocol adapter."
+
+[dependencies]
+leeway-protocol-core = { path = "../sdk/leeway-protocol-core" }
+leeway-protocol-contracts = { path = "../sdk/leeway-protocol-contracts" }
+serde_json = "1"
+thiserror = "2"
+
+[dev-dependencies]
+hex = "0.4"
+
+[lints.rust]
+unsafe_code = "forbid"

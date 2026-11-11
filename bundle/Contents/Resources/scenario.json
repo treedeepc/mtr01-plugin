@@ -1,0 +1,392 @@
+{
+  "schemaVersion": 1,
+  "scenarioId": "mtr01-sim",
+  "name": "MTR01 Simulator",
+  "protocolId": "mtr01-protocol",
+  "protocolVersion": "1.5",
+  "initialState": {
+    "subscribed": false,
+    "report": {
+      "kind": "bytes",
+      "hex": "40014001400140014001400140014001400140014001400140014001400140014001400140014001400140014001400140014001400140014001400140014001fa00fb00fc00fd003e0157002885ffc0ff01004101d00701"
+    },
+    "deviceInfo": {
+      "kind": "bytes",
+      "hex": "00efef4d5452303153494defefefefefefefefefefefefefefefefef424d5332303236313130353030303153572d312e35ef48572d31"
+    },
+    "basicFeedback": {
+      "kind": "bytes",
+      "hex": "0100"
+    },
+    "runtimeFeedback": {
+      "kind": "bytes",
+      "hex": "0200"
+    },
+    "identityFeedback": {
+      "kind": "bytes",
+      "hex": "0300"
+    },
+    "connectionFeedback": {
+      "kind": "bytes",
+      "hex": "0101"
+    },
+    "scanList": {
+      "kind": "bytes",
+      "hex": "0201efefefefefefefefefefefefefef4d545230312053494d01010203040506d8efefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefef"
+    },
+    "bindingResponse": {
+      "kind": "bytes",
+      "hex": "0001"
+    }
+  },
+  "rules": [
+    {
+      "id": "subscribe",
+      "messageId": "aSubscribe",
+      "actions": [
+        {
+          "kind": "set",
+          "variable": "subscribed",
+          "value": {
+            "kind": "literal",
+            "value": true
+          }
+        },
+        {
+          "kind": "send",
+          "messageId": "aData",
+          "values": {
+            "payload": {
+              "kind": "variable",
+              "name": "report"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "unsubscribe",
+      "messageId": "aUnsubscribe",
+      "actions": [
+        {
+          "kind": "set",
+          "variable": "subscribed",
+          "value": {
+            "kind": "literal",
+            "value": false
+          }
+        }
+      ]
+    },
+    {
+      "id": "read-once",
+      "messageId": "aOnce",
+      "actions": [
+        {
+          "kind": "send",
+          "messageId": "aData",
+          "values": {
+            "payload": {
+              "kind": "variable",
+              "name": "report"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "get-device-info",
+      "messageId": "bGetInfo",
+      "actions": [
+        {
+          "kind": "send",
+          "messageId": "bDeviceInfo",
+          "values": {
+            "payload": {
+              "kind": "variable",
+              "name": "deviceInfo"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "apply-basic-config",
+      "messageId": "bBasicConfig",
+      "actions": [
+        {
+          "kind": "send",
+          "messageId": "bBasicConfigFeedback",
+          "values": {
+            "payload": {
+              "kind": "variable",
+              "name": "basicFeedback"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "apply-runtime-config",
+      "messageId": "bRuntimeConfig",
+      "actions": [
+        {
+          "kind": "send",
+          "messageId": "bRuntimeConfigFeedback",
+          "values": {
+            "payload": {
+              "kind": "variable",
+              "name": "runtimeFeedback"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "apply-identity-config",
+      "messageId": "bIdentityConfig",
+      "actions": [
+        {
+          "kind": "send",
+          "messageId": "bIdentityConfigFeedback",
+          "values": {
+            "payload": {
+              "kind": "variable",
+              "name": "identityFeedback"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "scan-devices",
+      "messageId": "cScanRequest",
+      "actions": [
+        {
+          "kind": "send",
+          "messageId": "cScanList",
+          "values": {
+            "payload": {
+              "kind": "variable",
+              "name": "scanList"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "connect-control",
+      "messageId": "cConnectControl",
+      "actions": [
+        {
+          "kind": "send",
+          "messageId": "cConnectionFeedback",
+          "values": {
+            "payload": {
+              "kind": "variable",
+              "name": "connectionFeedback"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "binding-unbound",
+      "messageId": "dUnbound",
+      "actions": [
+        {
+          "kind": "send",
+          "messageId": "dResponse",
+          "values": {
+            "payload": {
+              "kind": "variable",
+              "name": "bindingResponse"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "binding-bound",
+      "messageId": "dBound",
+      "actions": [
+        {
+          "kind": "send",
+          "messageId": "dResponse",
+          "values": {
+            "payload": {
+              "kind": "variable",
+              "name": "bindingResponse"
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "timers": [
+    {
+      "id": "realtime-report",
+      "everyMs": 500,
+      "when": {
+        "variable": "subscribed",
+        "equals": true
+      },
+      "actions": [
+        {
+          "kind": "send",
+          "messageId": "aData",
+          "values": {
+            "payload": {
+              "kind": "variable",
+              "name": "report"
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "editableFields": {
+    "schemaVersion": 1,
+    "fields": [
+      {
+        "id": "stateOfChargePercent",
+        "label": "State of Charge",
+        "localizedLabels": {
+          "zh-Hans": "电量",
+          "zh-Hant": "電量"
+        },
+        "target": {
+          "kind": "fixedLayoutField",
+          "variable": "report",
+          "messageId": "aData",
+          "fieldId": "stateOfChargePercent"
+        },
+        "control": "slider",
+        "minimum": 0,
+        "maximum": 100,
+        "step": 1,
+        "unit": "%",
+        "localizedUnits": {
+          "zh-Hans": "%",
+          "zh-Hant": "%"
+        }
+      },
+      {
+        "id": "mosTemperatureDeciCelsius",
+        "label": "MOS Temperature",
+        "localizedLabels": {
+          "zh-Hans": "MOS 温度",
+          "zh-Hant": "MOS 溫度"
+        },
+        "target": {
+          "kind": "fixedLayoutField",
+          "variable": "report",
+          "messageId": "aData",
+          "fieldId": "mosTemperatureDeciCelsius"
+        },
+        "control": "integer",
+        "minimum": 0,
+        "maximum": 65535,
+        "step": 1,
+        "unit": "0.1°C",
+        "localizedUnits": {
+          "zh-Hans": "0.1°C",
+          "zh-Hant": "0.1°C"
+        }
+      },
+      {
+        "id": "totalVoltage10mV",
+        "label": "Total Voltage",
+        "localizedLabels": {
+          "zh-Hans": "总电压",
+          "zh-Hant": "總電壓"
+        },
+        "target": {
+          "kind": "fixedLayoutField",
+          "variable": "report",
+          "messageId": "aData",
+          "fieldId": "totalVoltage10mV"
+        },
+        "control": "integer",
+        "minimum": 0,
+        "maximum": 65535,
+        "step": 1,
+        "unit": "10mV",
+        "localizedUnits": {
+          "zh-Hans": "10mV",
+          "zh-Hant": "10mV"
+        }
+      },
+      {
+        "id": "currentCentiamps",
+        "label": "Current",
+        "localizedLabels": {
+          "zh-Hans": "电流",
+          "zh-Hant": "電流"
+        },
+        "target": {
+          "kind": "fixedLayoutField",
+          "variable": "report",
+          "messageId": "aData",
+          "fieldId": "currentCentiamps"
+        },
+        "control": "integer",
+        "minimum": -32768,
+        "maximum": 32767,
+        "step": 1,
+        "unit": "0.01A",
+        "localizedUnits": {
+          "zh-Hans": "0.01A",
+          "zh-Hant": "0.01A"
+        }
+      },
+      {
+        "id": "powerWatts",
+        "label": "Power",
+        "localizedLabels": {
+          "zh-Hans": "功率",
+          "zh-Hant": "功率"
+        },
+        "target": {
+          "kind": "fixedLayoutField",
+          "variable": "report",
+          "messageId": "aData",
+          "fieldId": "powerWatts"
+        },
+        "control": "integer",
+        "minimum": -32768,
+        "maximum": 32767,
+        "step": 1,
+        "unit": "W",
+        "localizedUnits": {
+          "zh-Hans": "W",
+          "zh-Hant": "W"
+        }
+      },
+      {
+        "id": "cycleCount",
+        "label": "Cycle Count",
+        "localizedLabels": {
+          "zh-Hans": "循环次数",
+          "zh-Hant": "循環次數"
+        },
+        "target": {
+          "kind": "fixedLayoutField",
+          "variable": "report",
+          "messageId": "aData",
+          "fieldId": "cycleCount"
+        },
+        "control": "integer",
+        "minimum": 0,
+        "maximum": 65535,
+        "step": 1,
+        "unit": "cycles",
+        "localizedUnits": {
+          "zh-Hans": "次",
+          "zh-Hant": "次"
+        }
+      }
+    ]
+  },
+  "faults": []
+}

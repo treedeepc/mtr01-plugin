@@ -1,0 +1,21 @@
+{
+  "schemaVersion": 1,
+  "pluginId": "com.leeway.mtr01",
+  "name": "MTR01 Protocol Plugin",
+  "version": "1.0.0",
+  "publisher": "Leeway",
+  "abiVersion": 1,
+  "protocolId": "mtr01-protocol",
+  "protocolVersion": "1.5",
+  "library": "Contents/MacOS/mtr01-plugin.dylib",
+  "protocolFile": "Contents/Resources/protocol.json",
+  "scenarioFile": "Contents/Resources/scenario.json",
+  "configurationFile": "Contents/Resources/configuration.json",
+  "architectures": ["arm64", "x86_64"],
+  "files": {
+    "librarySha256": "0000000000000000000000000000000000000000000000000000000000000000",
+    "protocolSha256": "c6d16ad637b1a120d9fb48fbc8973fc67368b850a48633d691213e143c426137",
+    "scenarioSha256": "6bd7690a94ab81712a085e5512e8b259c2682216d1a0896dfa557bf0f48a43eb",
+    "configurationSha256": "311a68c72b9f15795dabd391a4ff0e607786e72760b24be0c6be018aa3d1ed35"
+  }
+}

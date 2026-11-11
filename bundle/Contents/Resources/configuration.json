@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "fields": [
+    {
+      "id": "cmacKey",
+      "type": "secretBytes",
+      "encoding": "hex",
+      "length": 16,
+      "required": true,
+      "label": "AES-CMAC key",
+      "localizedLabels": {
+        "zh-Hans": "AES-CMAC 密钥",
+        "zh-Hant": "AES-CMAC 密鑰"
+      }
+    }
+  ]
+}
