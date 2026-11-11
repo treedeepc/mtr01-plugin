@@ -8,7 +8,8 @@
 set -euo pipefail
 
 project_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-bundle_source="${project_root}/bundle"
+bundle_source="${LEEWAY_PLUGIN_BUNDLE_SOURCE:-${project_root}/bundle}"
+output_override="${LEEWAY_PLUGIN_BUNDLE_OUTPUT:-}"
 package="leeway-protocol-mtr01-plugin"
 validate_only=false
 json_output=false
@@ -330,7 +331,7 @@ if [[ ! -f "${source_dylib}" ]]; then
     fail build_failed 4 "Built plugin dylib is missing."
 fi
 
-output_root="${project_root}/.build/protocol-plugins/${plugin_id}.leewayplugin"
+output_root="${output_override:-${project_root}/.build/protocol-plugins/${plugin_id}.leewayplugin}"
 rm -rf "${output_root}"
 mkdir -p "${output_root}/Contents/MacOS"
 /usr/bin/ditto \
