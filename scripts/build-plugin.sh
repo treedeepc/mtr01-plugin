@@ -138,6 +138,15 @@ fi
 add_check manifest "Plugin manifest is valid."
 
 plugin_id="$(jq -r '.pluginId' "${manifest}")"
+if [[ -n "${output_override}" ]]; then
+    allowed_output="${project_root}/.build/verification/${plugin_id}.leewayplugin"
+    if [[ "${output_override}" != "${allowed_output}" ]]; then
+        fail \
+            invalid_arguments \
+            2 \
+            "Verification output path must equal ${allowed_output}."
+    fi
+fi
 protocol_id="$(jq -r '.protocolId' "${manifest}")"
 protocol_version="$(jq -r '.protocolVersion' "${manifest}")"
 library="$(jq -r '.library' "${manifest}")"
