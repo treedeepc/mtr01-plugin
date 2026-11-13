@@ -33,14 +33,13 @@ const BUNDLE_CONFIGURATION: &str =
 const TEST_KEY: [u8; 16] = [
     0x2b, 0x7e, 0x15, 0x16, 0x28, 0xae, 0xd2, 0xa6, 0xab, 0xf7, 0x15, 0x88, 0x09, 0xcf, 0x4f, 0x3c,
 ];
-const REPORT_HEX: &str = "40014001400140014001400140014001400140014001400140014001400140014001400140014001400140014001400140014001400140014001400140014001fa00fb00fc00fd003e0157002885ffc0ff01004101d00701";
+const REPORT_HEX: &str = "40014001400140014001400140014001400140014001400140014001400140014001400140014001400140014001400140014001400140014001400140014001fa00fb00fc00fd003e0157002885ffc0ff01004101d0070100";
 
 fn bytes_value(bytes: &[u8]) -> PluginWireValue {
     PluginWireValue::Bytes {
         base64: STANDARD.encode(bytes),
     }
 }
-
 fn create(handler: &Mtr01PluginHandler, key: [u8; 16]) -> u64 {
     let response = handler
         .handle(&PluginHostRequest::Create {
@@ -243,7 +242,7 @@ fn stream_reassembles_split_mtr01_frames() {
 }
 
 #[test]
-fn v15_b_and_c_messages_match_shared_adapter() {
+fn v151_b_and_c_messages_match_shared_adapter() {
     let handler = Mtr01PluginHandler::new();
     let handle = create(&handler, TEST_KEY);
     let adapter = Mtr01Adapter::new(TEST_KEY);
@@ -294,7 +293,7 @@ fn v15_b_and_c_messages_match_shared_adapter() {
             MTR01_MESSAGE_C_DISCONNECT_AND_UNBIND,
             vec![0x02, 0x03, 0xEF, 0xEF, 0xEF, 0xEF, 0xEF, 0xEF, 0xEF],
         ),
-        (MTR01_MESSAGE_C_SCAN_ERROR, vec![0x02, 0x02]),
+        (MTR01_MESSAGE_C_SCAN_ERROR, vec![0x01, 0x02]),
         (MTR01_MESSAGE_C_SCAN_LIST, scan_list),
     ];
     for (message_id, payload) in requests {
@@ -318,8 +317,21 @@ fn v15_b_and_c_messages_match_shared_adapter() {
             Mtr01DeviceInfoV15 {
                 device_name: "MTR01SIM".into(),
                 serial_number: "BMS202611050001".into(),
-                software_version: "1.5".into(),
+                software_version: "1.5.1".into(),
                 hardware_version: "1".into(),
+                basic_config: Mtr01BasicConfig {
+                    bms_type: Mtr01BmsType::Jbd,
+                    battery_type: Mtr01BatteryType::TernaryLithium,
+                    baud_rate: 115_200,
+                    vehicle_protocol: "RS".into(),
+                    vehicle_brand: "NIU".into(),
+                },
+                runtime_config: Mtr01RuntimeConfig {
+                    rated_capacity_10mah: 2_000,
+                    cell_count: 16,
+                    consumption_wh_per_100km: 2_500,
+                    ocv_raw: [0xEF; 42],
+                },
             }
             .to_payload()
             .expect("device info"),
@@ -327,7 +339,7 @@ fn v15_b_and_c_messages_match_shared_adapter() {
         (MTR01_MESSAGE_B_BASIC_FEEDBACK, vec![0x01, 0x02]),
         (MTR01_MESSAGE_B_RUNTIME_FEEDBACK, vec![0x02, 0x02]),
         (MTR01_MESSAGE_B_IDENTITY_FEEDBACK, vec![0x03, 0x00]),
-        (MTR01_MESSAGE_C_CONNECTION_FEEDBACK, vec![0x01, 0x01]),
+        (MTR01_MESSAGE_C_CONNECTION_FEEDBACK, vec![0x02, 0x01]),
     ];
     for (message_id, payload) in responses {
         let plugin_frame = encode(&handler, handle, message_id, &payload);
@@ -339,7 +351,7 @@ fn v15_b_and_c_messages_match_shared_adapter() {
 }
 
 #[test]
-fn v15_rejects_mismatched_message_payloads_recoverably() {
+fn v151_rejects_mismatched_message_payloads_recoverably() {
     let handler = Mtr01PluginHandler::new();
     let handle = create(&handler, TEST_KEY);
     let response = handler
@@ -381,7 +393,7 @@ fn v15_rejects_mismatched_message_payloads_recoverably() {
                 hex::decode(REPORT_HEX)
                     .expect("report")
                     .into_iter()
-                    .take(87)
+                    .take(88)
                     .collect(),
             ),
         )]),
@@ -466,10 +478,17 @@ fn example_bundle_metadata_matches_runtime_contract() {
     assert_eq!(manifest["pluginId"], "com.leeway.mtr01");
     assert_eq!(manifest["abiVersion"], 1);
     assert_eq!(manifest["protocolId"], "mtr01-protocol");
-    assert_eq!(manifest["protocolVersion"], "1.5");
+    assert_eq!(manifest["protocolVersion"], "1.5.1");
 
     let protocol: Value = serde_json::from_str(BUNDLE_PROTOCOL).expect("protocol JSON");
     assert_eq!(protocol, Mtr01Adapter::new([0; 16]).definition());
+    let device_info = protocol["messages"]
+        .as_array()
+        .expect("messages")
+        .iter()
+        .find(|message| message["id"] == "bDeviceInfo")
+        .expect("bDeviceInfo");
+    assert_eq!(device_info["payload"]["endianness"], "little");
     assert_eq!(protocol["bleProfile"]["id"], "mtr01");
     assert_eq!(protocol["bleProfile"]["name"], "MTR01");
     assert_eq!(protocol["bleProfile"]["advertisementUuid"], "AAA0");
@@ -479,7 +498,16 @@ fn example_bundle_metadata_matches_runtime_contract() {
     assert_eq!(scenario["scenarioId"], "mtr01-sim");
     assert_eq!(scenario["name"], "MTR01 Simulator");
     assert_eq!(scenario["protocolId"], "mtr01-protocol");
-    assert_eq!(scenario["protocolVersion"], "1.5");
+    assert_eq!(scenario["protocolVersion"], "1.5.1");
+    for (variable, expected_bytes) in [("report", 89), ("deviceInfo", 113), ("scanList", 212)] {
+        let bytes = hex::decode(
+            scenario["initialState"][variable]["hex"]
+                .as_str()
+                .expect("scenario bytes"),
+        )
+        .expect("scenario hex");
+        assert_eq!(bytes.len(), expected_bytes, "{variable}");
+    }
     let editable_fields = scenario["editableFields"]["fields"]
         .as_array()
         .expect("editable fields");

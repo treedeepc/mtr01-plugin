@@ -4,7 +4,7 @@
 
 当前实现使用 MTR01 TCZQ 固定帧头、长度域和 16 字节 AES-CMAC：
 
-- 支持 V1.5 的 A/B/C/D 请求和应答消息；
+- 支持 V1.5.1 的 A/B/C/D 请求和应答消息；
 - Bundle 使用 canonical BLE Profile，通知载荷块为 244 字节；
 - 默认场景 ID 为 `mtr01-sim`，收到 `aSubscribe` 后发送 `aData`；
 - A@ 报告暴露电量、MOS 温度、总电压、电流、功率和循环次数六个 editable field。

@@ -6,7 +6,7 @@
   "publisher": "Leeway",
   "abiVersion": 1,
   "protocolId": "mtr01-protocol",
-  "protocolVersion": "1.5",
+  "protocolVersion": "1.5.1",
   "library": "Contents/MacOS/mtr01-plugin.dylib",
   "protocolFile": "Contents/Resources/protocol.json",
   "scenarioFile": "Contents/Resources/scenario.json",
@@ -14,8 +14,8 @@
   "architectures": ["arm64", "x86_64"],
   "files": {
     "librarySha256": "0000000000000000000000000000000000000000000000000000000000000000",
-    "protocolSha256": "c6d16ad637b1a120d9fb48fbc8973fc67368b850a48633d691213e143c426137",
-    "scenarioSha256": "6bd7690a94ab81712a085e5512e8b259c2682216d1a0896dfa557bf0f48a43eb",
+    "protocolSha256": "3bd68cbc80a03dcdf284a4696bdad20600cc40d8b4740fdef520dd2d536bfe29",
+    "scenarioSha256": "10f893531dc29cb7838a35a4b51abc7213ef3c35f00fce253f9ebf15cc201d71",
     "configurationSha256": "311a68c72b9f15795dabd391a4ff0e607786e72760b24be0c6be018aa3d1ed35"
   }
 }

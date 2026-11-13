@@ -71,7 +71,7 @@ impl Mtr01Command {
     ///
     /// # Errors
     ///
-    /// 命令码不属于 MTR01 V1.5 的已知集合时返回稳定错误。
+    /// 命令码不属于 MTR01 V1.5.1 的已知集合时返回稳定错误。
     pub const fn from_bytes(bytes: [u8; 2]) -> Result<Self, Mtr01Error> {
         match &bytes {
             b"A#" => Ok(Self::ARequest),

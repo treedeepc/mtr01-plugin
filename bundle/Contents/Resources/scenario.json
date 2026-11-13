@@ -3,16 +3,16 @@
   "scenarioId": "mtr01-sim",
   "name": "MTR01 Simulator",
   "protocolId": "mtr01-protocol",
-  "protocolVersion": "1.5",
+  "protocolVersion": "1.5.1",
   "initialState": {
     "subscribed": false,
     "report": {
       "kind": "bytes",
-      "hex": "40014001400140014001400140014001400140014001400140014001400140014001400140014001400140014001400140014001400140014001400140014001fa00fb00fc00fd003e0157002885ffc0ff01004101d00701"
+      "hex": "40014001400140014001400140014001400140014001400140014001400140014001400140014001400140014001400140014001400140014001400140014001fa00fb00fc00fd003e0157002885ffc0ff01004101d0070100"
     },
     "deviceInfo": {
       "kind": "bytes",
-      "hex": "00efef4d5452303153494defefefefefefefefefefefefefefefefef424d5332303236313130353030303153572d312e35ef48572d31"
+      "hex": "00efef4d5452303153494defefefefefefefefefefefefefefefefef424d5332303236313130353030303153572d312e35ef48572d31030101c2005253efef4e4955d00710c409efefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefef"
     },
     "basicFeedback": {
       "kind": "bytes",
@@ -28,11 +28,11 @@
     },
     "connectionFeedback": {
       "kind": "bytes",
-      "hex": "0101"
+      "hex": "0201"
     },
     "scanList": {
       "kind": "bytes",
-      "hex": "0201efefefefefefefefefefefefefef4d545230312053494d01010203040506d8efefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefef"
+      "hex": "0101efefefefefefefefefefefefef4d545230312053494d01010203040506d8efefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefef"
     },
     "bindingResponse": {
       "kind": "bytes",

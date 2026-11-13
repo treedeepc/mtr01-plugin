@@ -2,7 +2,7 @@
 //  mtr01_tests.rs
 //  leeway-protocol-mtr01 / tests
 //
-//  文件职责：验证 MTR01 V1.5 帧、流式分片和 A/B/C/D 业务载荷黄金行为。
+//  文件职责：验证 MTR01 V1.5.1 帧、流式分片和 A/B/C/D 业务载荷黄金行为。
 //
 
 use leeway_protocol_core::AesCmacKey;
@@ -27,8 +27,8 @@ const TEST_KEY: [u8; 16] = [
     0x2b, 0x7e, 0x15, 0x16, 0x28, 0xae, 0xd2, 0xa6, 0xab, 0xf7, 0x15, 0x88, 0x09, 0xcf, 0x4f, 0x3c,
 ];
 
-const REPORT_HEX: &str = "40014001400140014001400140014001400140014001400140014001400140014001400140014001400140014001400140014001400140014001400140014001fa00fb00fc00fd003e0157002885ffc0ff01004101d00701";
-const REPORT_FRAME_HEX: &str = "54435a5141405840014001400140014001400140014001400140014001400140014001400140014001400140014001400140014001400140014001400140014001400140014001fa00fb00fc00fd003e0157002885ffc0ff01004101d007017c9ebf294d1233c42f4fb6c64ef0365c";
+const REPORT_HEX: &str = "40014001400140014001400140014001400140014001400140014001400140014001400140014001400140014001400140014001400140014001400140014001fa00fb00fc00fd003e0157002885ffc0ff01004101d0070100";
+const REPORT_FRAME_HEX: &str = "54435a5141405940014001400140014001400140014001400140014001400140014001400140014001400140014001400140014001400140014001400140014001400140014001fa00fb00fc00fd003e0157002885ffc0ff01004101d0070100e0a6915cfd5c960f13b09b2c376488e3";
 
 fn adapter_values(payload: &[u8]) -> ProtocolValues {
     ProtocolValues::from([("payload".into(), ProtocolValue::Bytes(payload.to_vec()))])
@@ -63,14 +63,15 @@ fn encodes_golden_a_request_frame() {
     );
 }
 
-/// 验证 V1.5 A@ 88 字节黄金帧及数据来源字段。
+/// 验证 V1.5.1 A@ 89 字节黄金帧及数据来源和故障码字段。
 #[test]
-fn encodes_golden_v15_realtime_data_frame() {
+fn encodes_golden_v151_realtime_data_frame() {
     let payload = hex::decode(REPORT_HEX).expect("report");
     let report = Mtr01AData::from_payload(&payload).expect("decode payload");
-    assert_eq!(payload.len(), 88);
+    assert_eq!(payload.len(), 89);
     assert_eq!(report.state_of_charge_percent, 87);
     assert_eq!(report.data_source, 0x01);
+    assert_eq!(report.fault_code, 0x00);
     assert_eq!(report.to_payload(), payload);
 
     let frame = Mtr01Codec::new(TEST_KEY)
@@ -86,7 +87,7 @@ fn encodes_golden_v15_realtime_data_frame() {
     assert_eq!(decoded.values, adapter_values(&payload));
 }
 
-/// 验证错误数据来源和旧 87 字节报文被拒绝。
+/// 验证错误数据来源、故障码和旧 88 字节报文被拒绝。
 #[test]
 fn rejects_old_or_invalid_realtime_data_payloads() {
     let mut payload = hex::decode(REPORT_HEX).expect("report");
@@ -98,6 +99,13 @@ fn rejects_old_or_invalid_realtime_data_payloads() {
 
     let mut payload = hex::decode(REPORT_HEX).expect("report");
     payload[87] = 0x03;
+    assert_eq!(
+        Mtr01AData::from_payload(&payload),
+        Err(Mtr01Error::UnsupportedValue)
+    );
+
+    let mut payload = hex::decode(REPORT_HEX).expect("report");
+    payload[88] = 0x03;
     assert_eq!(
         Mtr01AData::from_payload(&payload),
         Err(Mtr01Error::UnsupportedValue)
@@ -147,7 +155,7 @@ fn stream_decoder_reassembles_split_and_multiple_frames() {
     );
 }
 
-/// 验证 A@ 88 字节字段按协议布局往返。
+/// 验证 A@ 89 字节字段按协议布局往返。
 #[test]
 fn round_trips_realtime_data_payload() {
     let data = Mtr01AData {
@@ -165,16 +173,18 @@ fn round_trips_realtime_data_payload() {
         cycle_count: 321,
         rated_capacity_10mah: 2_000,
         data_source: 0x02,
+        fault_code: 0x01,
     };
     let payload = data.to_payload();
     assert_eq!(payload.len(), Mtr01AData::PAYLOAD_BYTES);
     assert_eq!(payload[87], 0x02);
+    assert_eq!(payload[88], 0x01);
     assert_eq!(Mtr01AData::from_payload(&payload).expect("decode"), data);
 }
 
 /// 验证 B# cmd 00 到 04 的固定布局、枚举和错误边界。
 #[test]
-fn round_trips_v15_b_requests() {
+fn round_trips_v151_b_requests() {
     assert_eq!(
         Mtr01BRequest::from_payload(&[0x00]).expect("get info"),
         Mtr01BRequest::GetInfo
@@ -244,15 +254,38 @@ fn round_trips_v15_b_requests() {
 
 /// 验证 B@ 设备信息和三类反馈码。
 #[test]
-fn round_trips_v15_b_responses() {
+fn round_trips_v151_b_responses() {
+    let basic_config = Mtr01BasicConfig {
+        bms_type: Mtr01BmsType::AtnDash,
+        battery_type: Mtr01BatteryType::LithiumIronPhosphate,
+        baud_rate: 115_200,
+        vehicle_protocol: "RS".into(),
+        vehicle_brand: "NIU".into(),
+    };
+    let runtime_config = Mtr01RuntimeConfig {
+        rated_capacity_10mah: 2_000,
+        cell_count: 16,
+        consumption_wh_per_100km: 2_500,
+        ocv_raw: [0xEF; 42],
+    };
     let info = Mtr01DeviceInfoV15 {
         device_name: "MTR01BLE".into(),
         serial_number: "BMS202611050001".into(),
-        software_version: "SW-1.5".into(),
+        software_version: "1.5.1".into(),
         hardware_version: "HW-1".into(),
+        basic_config,
+        runtime_config,
     };
     let payload = info.to_payload().expect("device info");
-    assert_eq!(payload.len(), 54);
+    assert_eq!(payload.len(), 113);
+    assert_eq!(payload[54], 0x01);
+    assert_eq!(payload[55], 0x02);
+    assert_eq!(&payload[56..59], &[0x01, 0xC2, 0x00]);
+    assert_eq!(&payload[59..61], b"RS");
+    assert_eq!(&payload[66..68], &[0xD0, 0x07]);
+    assert_eq!(payload[68], 16);
+    assert_eq!(&payload[69..71], &[0xC4, 0x09]);
+    assert!(payload[71..113].iter().all(|byte| *byte == 0xEF));
     assert_eq!(
         Mtr01BResponse::from_payload(&payload).expect("decode"),
         Mtr01BResponse::DeviceInfo(info)
@@ -280,7 +313,7 @@ fn round_trips_v15_b_responses() {
 
 /// 验证 C# 扫描、连接控制和断开解绑填充。
 #[test]
-fn round_trips_v15_c_requests() {
+fn round_trips_v151_c_requests() {
     assert_eq!(
         Mtr01CRequest::from_payload(&[0x01]).expect("scan"),
         Mtr01CRequest::Scan
@@ -327,20 +360,20 @@ fn round_trips_v15_c_requests() {
     );
 }
 
-/// 验证 C@ 连接反馈、独立扫描错误和 219 字节扫描列表。
+/// 验证 C@ cmd 映射、扫描错误和 212 字节扫描列表。
 #[test]
-fn round_trips_v15_c_responses() {
+fn round_trips_v151_c_responses() {
     let connected = Mtr01CResponse::Connection(Mtr01ConnectionFeedback::Success)
         .to_payload()
         .expect("connected");
-    assert_eq!(connected, [0x01, 0x01]);
+    assert_eq!(connected, [0x02, 0x01]);
     assert_eq!(
         Mtr01CResponse::from_payload(&connected).expect("decode"),
         Mtr01CResponse::Connection(Mtr01ConnectionFeedback::Success)
     );
     assert_eq!(
         Mtr01CResponse::ScanError.to_payload().expect("scan error"),
-        [0x02, 0x02]
+        [0x01, 0x02]
     );
 
     let slots = std::array::from_fn(|index| match index {
@@ -360,14 +393,21 @@ fn round_trips_v15_c_responses() {
     });
     let list = Mtr01ScanList { slots };
     let payload = list.to_payload().expect("scan list");
-    assert_eq!(payload.len(), 219);
-    assert!(payload[64..].iter().all(|byte| *byte == 0xEF));
+    assert_eq!(payload.len(), 212);
+    assert_eq!(payload[..2], [0x01, 0x01]);
+    let first_slot = &payload[2..32];
+    assert!(first_slot[..17].iter().all(|byte| *byte == 0xEF));
+    assert_eq!(&first_slot[17..22], b"MTR01");
+    assert_eq!(first_slot[22], 0x01);
+    assert_eq!(&first_slot[23..29], &[1, 2, 3, 4, 5, 6]);
+    assert_eq!(first_slot[29], 0xD8);
+    assert!(payload[62..].iter().all(|byte| *byte == 0xEF));
     assert_eq!(Mtr01ScanList::from_payload(&payload), Ok(list));
 }
 
 /// 验证 adapter 将扫描成功和扫描错误映射为独立稳定消息 ID。
 #[test]
-fn adapter_maps_v15_message_ids_and_validates_routing() {
+fn adapter_maps_v151_message_ids_and_validates_routing() {
     let adapter = Mtr01Adapter::new(TEST_KEY);
     let scan_list = Mtr01CResponse::ScanList(Mtr01ScanList {
         slots: std::array::from_fn(|_| Mtr01ScanSlot::Empty),
@@ -415,8 +455,21 @@ fn adapter_maps_v15_message_ids_and_validates_routing() {
             Mtr01DeviceInfoV15 {
                 device_name: "MTR01".into(),
                 serial_number: "BMS202611050001".into(),
-                software_version: "1.5".into(),
+                software_version: "1.5.1".into(),
                 hardware_version: "1".into(),
+                basic_config: Mtr01BasicConfig {
+                    bms_type: Mtr01BmsType::AtnDash,
+                    battery_type: Mtr01BatteryType::LithiumIronPhosphate,
+                    baud_rate: 9_600,
+                    vehicle_protocol: "1W".into(),
+                    vehicle_brand: "YY".into(),
+                },
+                runtime_config: Mtr01RuntimeConfig {
+                    rated_capacity_10mah: 1_000,
+                    cell_count: 4,
+                    consumption_wh_per_100km: 1_200,
+                    ocv_raw: [0xEF; 42],
+                },
             }
             .to_payload()
             .expect("device info"),
@@ -431,8 +484,8 @@ fn adapter_maps_v15_message_ids_and_validates_routing() {
             vec![0x02, 0x03, 0xEF, 0xEF, 0xEF, 0xEF, 0xEF, 0xEF, 0xEF],
         ),
         (MTR01_MESSAGE_C_SCAN_LIST, scan_list),
-        (MTR01_MESSAGE_C_SCAN_ERROR, vec![0x02, 0x02]),
-        (MTR01_MESSAGE_C_CONNECTION_FEEDBACK, vec![0x01, 0x02]),
+        (MTR01_MESSAGE_C_SCAN_ERROR, vec![0x01, 0x02]),
+        (MTR01_MESSAGE_C_CONNECTION_FEEDBACK, vec![0x02, 0x02]),
     ] {
         let frame = adapter
             .encode(message_id, &adapter_values(&payload))
@@ -486,14 +539,14 @@ fn exposes_protocol_limits() {
     assert_eq!(MTR01_NOTIFICATION_BYTES, 244);
 }
 
-/// 验证协议定义和适配器版本已整体切换为 V1.5。
+/// 验证协议定义和适配器版本已整体切换为 V1.5.1。
 #[test]
-fn adapter_declares_complete_v15_definition() {
+fn adapter_declares_complete_v151_definition() {
     let adapter = Mtr01Adapter::new(TEST_KEY);
     assert_eq!(adapter.protocol_id(), "mtr01-protocol");
-    assert_eq!(adapter.protocol_version(), "1.5");
+    assert_eq!(adapter.protocol_version(), "1.5.1");
     let definition = adapter.definition();
-    assert_eq!(definition["protocolVersion"], "1.5");
+    assert_eq!(definition["protocolVersion"], "1.5.1");
     assert_eq!(
         definition["messages"].as_array().expect("messages").len(),
         22

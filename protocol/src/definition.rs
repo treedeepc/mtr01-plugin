@@ -7,7 +7,7 @@
 
 use serde_json::{Value, json};
 
-/// 返回 MTR01 V1.5 的完整协议结构。
+/// 返回 MTR01 V1.5.1 的完整协议结构。
 #[allow(
     clippy::too_many_lines,
     reason = "固定协议定义需要完整列出全部 A/B/C/D 消息"
@@ -17,7 +17,7 @@ pub(crate) fn protocol_definition() -> Value {
         "schemaVersion": 1,
         "definitionKind": "native",
         "protocolId": "mtr01-protocol",
-        "protocolVersion": "1.5",
+        "protocolVersion": "1.5.1",
         "name": "MTR01 Metering Protocol",
         "framing": {
             "kind": "fixedHeaderLengthPrefixed",
@@ -82,7 +82,7 @@ pub(crate) fn protocol_definition() -> Value {
                 "direction": "deviceToCentral",
                 "payload": {
                     "kind": "fixedLayout",
-                    "lengthBytes": 88,
+                    "lengthBytes": 89,
                     "endianness": "little",
                     "fields": [
                         {"name": "cellVoltage10mV", "type": "u16[32]", "offsetBytes": 0, "unit": "10mV"},
@@ -99,6 +99,11 @@ pub(crate) fn protocol_definition() -> Value {
                         {"name": "dataSource", "type": "u8", "offsetBytes": 87, "values": {
                             "01": "localEstimate",
                             "02": "bmsTwin"
+                        }},
+                        {"name": "faultCode", "type": "u8", "offsetBytes": 88, "values": {
+                            "00": "none",
+                            "01": "currentReadingMasked",
+                            "02": "voltageReadingMasked"
                         }}
                     ]
                 }
@@ -194,13 +199,36 @@ pub(crate) fn protocol_definition() -> Value {
                 "direction": "deviceToCentral",
                 "payload": {
                     "kind": "fixedLayout",
-                    "lengthBytes": 54,
+                    "lengthBytes": 113,
+                    "endianness": "little",
                     "fields": [
                         {"name": "cmd", "type": "u8", "offsetBytes": 0, "constantHex": "00"},
                         {"name": "deviceName", "type": "ascii[10]", "offsetBytes": 1, "padding": "leftWithDelimiter"},
                         {"name": "serialNumber", "type": "ascii[32]", "offsetBytes": 11, "padding": "leftWithDelimiter"},
                         {"name": "softwareVersion", "type": "ascii[6]", "offsetBytes": 43, "padding": "leftWithDelimiter"},
-                        {"name": "hardwareVersion", "type": "ascii[5]", "offsetBytes": 49, "padding": "leftWithDelimiter"}
+                        {"name": "hardwareVersion", "type": "ascii[5]", "offsetBytes": 49, "padding": "leftWithDelimiter"},
+                        {"name": "bmsType", "type": "u8", "offsetBytes": 54, "values": {
+                            "01": "atnDash",
+                            "02": "atnAt",
+                            "03": "jbd",
+                            "04": "jk",
+                            "05": "yy"
+                        }},
+                        {"name": "batteryType", "type": "u8", "offsetBytes": 55, "values": {
+                            "01": "ternaryLithium",
+                            "02": "lithiumIronPhosphate",
+                            "03": "leadAcid"
+                        }},
+                        {"name": "baudRate", "type": "u24be", "offsetBytes": 56},
+                        {"name": "vehicleProtocol", "type": "ascii[2]", "offsetBytes": 59, "values": {
+                            "RS": "rs485",
+                            "1W": "oneWire"
+                        }},
+                        {"name": "vehicleBrand", "type": "ascii[5]", "offsetBytes": 61, "padding": "leftWithDelimiter"},
+                        {"name": "ratedCapacity10mAh", "type": "u16", "offsetBytes": 66, "unit": "10mAh"},
+                        {"name": "cellCount", "type": "u8", "offsetBytes": 68},
+                        {"name": "consumptionWhPer100km", "type": "u16", "offsetBytes": 69, "unit": "Wh/100km"},
+                        {"name": "ocvRaw", "type": "bytes[42]", "offsetBytes": 71, "unit": "1mV", "unconfiguredHex": "ef"}
                     ]
                 }
             },
@@ -288,8 +316,8 @@ pub(crate) fn protocol_definition() -> Value {
                     "kind": "fixedBytes",
                     "lengthBytes": 2,
                     "values": {
-                        "0101": "connected",
-                        "0102": "connectionFailed"
+                        "0201": "connected",
+                        "0202": "connectionFailed"
                     }
                 }
             },
@@ -299,16 +327,15 @@ pub(crate) fn protocol_definition() -> Value {
                 "direction": "deviceToCentral",
                 "payload": {
                     "kind": "fixedLayout",
-                    "lengthBytes": 219,
+                    "lengthBytes": 212,
                     "fields": [
-                        {"name": "cmd", "type": "u8", "offsetBytes": 0, "constantHex": "02"},
+                        {"name": "cmd", "type": "u8", "offsetBytes": 0, "constantHex": "01"},
                         {"name": "result", "type": "u8", "offsetBytes": 1, "constantHex": "01"},
-                        {"name": "scanSlots", "type": "scanSlot[7]", "offsetBytes": 2, "slotBytes": 31, "slotLayout": {
-                            "delimiter": {"offsetBytes": 0, "constantHex": "ef"},
-                            "name": {"offsetBytes": 1, "type": "ascii[22]", "padding": "leftWithDelimiter"},
-                            "addressType": {"offsetBytes": 23, "type": "u8"},
-                            "address": {"offsetBytes": 24, "type": "bytes[6]"},
-                            "rssi": {"offsetBytes": 30, "type": "i8"}
+                        {"name": "scanSlots", "type": "scanSlot[7]", "offsetBytes": 2, "slotBytes": 30, "slotLayout": {
+                            "name": {"offsetBytes": 0, "type": "ascii[22]", "padding": "leftWithDelimiter"},
+                            "addressType": {"offsetBytes": 22, "type": "u8"},
+                            "address": {"offsetBytes": 23, "type": "bytes[6]"},
+                            "rssi": {"offsetBytes": 29, "type": "i8"}
                         }}
                     ]
                 }
@@ -320,7 +347,7 @@ pub(crate) fn protocol_definition() -> Value {
                 "payload": {
                     "kind": "fixedBytes",
                     "lengthBytes": 2,
-                    "values": {"0202": "scanError"}
+                    "values": {"0102": "scanError"}
                 }
             },
             {

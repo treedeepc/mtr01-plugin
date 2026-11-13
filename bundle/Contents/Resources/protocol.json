@@ -141,10 +141,20 @@
               "01": "localEstimate",
               "02": "bmsTwin"
             }
+          },
+          {
+            "name": "faultCode",
+            "offsetBytes": 88,
+            "type": "u8",
+            "values": {
+              "00": "none",
+              "01": "currentReadingMasked",
+              "02": "voltageReadingMasked"
+            }
           }
         ],
         "kind": "fixedLayout",
-        "lengthBytes": 88
+        "lengthBytes": 89
       }
     },
     {
@@ -306,6 +316,7 @@
       "direction": "deviceToCentral",
       "id": "bDeviceInfo",
       "payload": {
+        "endianness": "little",
         "fields": [
           {
             "constantHex": "00",
@@ -336,10 +347,76 @@
             "offsetBytes": 49,
             "padding": "leftWithDelimiter",
             "type": "ascii[5]"
+          },
+          {
+            "name": "bmsType",
+            "offsetBytes": 54,
+            "type": "u8",
+            "values": {
+              "01": "atnDash",
+              "02": "atnAt",
+              "03": "jbd",
+              "04": "jk",
+              "05": "yy"
+            }
+          },
+          {
+            "name": "batteryType",
+            "offsetBytes": 55,
+            "type": "u8",
+            "values": {
+              "01": "ternaryLithium",
+              "02": "lithiumIronPhosphate",
+              "03": "leadAcid"
+            }
+          },
+          {
+            "name": "baudRate",
+            "offsetBytes": 56,
+            "type": "u24be"
+          },
+          {
+            "name": "vehicleProtocol",
+            "offsetBytes": 59,
+            "type": "ascii[2]",
+            "values": {
+              "1W": "oneWire",
+              "RS": "rs485"
+            }
+          },
+          {
+            "name": "vehicleBrand",
+            "offsetBytes": 61,
+            "padding": "leftWithDelimiter",
+            "type": "ascii[5]"
+          },
+          {
+            "name": "ratedCapacity10mAh",
+            "offsetBytes": 66,
+            "type": "u16",
+            "unit": "10mAh"
+          },
+          {
+            "name": "cellCount",
+            "offsetBytes": 68,
+            "type": "u8"
+          },
+          {
+            "name": "consumptionWhPer100km",
+            "offsetBytes": 69,
+            "type": "u16",
+            "unit": "Wh/100km"
+          },
+          {
+            "name": "ocvRaw",
+            "offsetBytes": 71,
+            "type": "bytes[42]",
+            "unconfiguredHex": "ef",
+            "unit": "1mV"
           }
         ],
         "kind": "fixedLayout",
-        "lengthBytes": 54
+        "lengthBytes": 113
       }
     },
     {
@@ -450,8 +527,8 @@
         "kind": "fixedBytes",
         "lengthBytes": 2,
         "values": {
-          "0101": "connected",
-          "0102": "connectionFailed"
+          "0201": "connected",
+          "0202": "connectionFailed"
         }
       }
     },
@@ -462,7 +539,7 @@
       "payload": {
         "fields": [
           {
-            "constantHex": "02",
+            "constantHex": "01",
             "name": "cmd",
             "offsetBytes": 0,
             "type": "u8"
@@ -476,27 +553,23 @@
           {
             "name": "scanSlots",
             "offsetBytes": 2,
-            "slotBytes": 31,
+            "slotBytes": 30,
             "slotLayout": {
               "address": {
-                "offsetBytes": 24,
+                "offsetBytes": 23,
                 "type": "bytes[6]"
               },
               "addressType": {
-                "offsetBytes": 23,
+                "offsetBytes": 22,
                 "type": "u8"
               },
-              "delimiter": {
-                "constantHex": "ef",
-                "offsetBytes": 0
-              },
               "name": {
-                "offsetBytes": 1,
+                "offsetBytes": 0,
                 "padding": "leftWithDelimiter",
                 "type": "ascii[22]"
               },
               "rssi": {
-                "offsetBytes": 30,
+                "offsetBytes": 29,
                 "type": "i8"
               }
             },
@@ -504,7 +577,7 @@
           }
         ],
         "kind": "fixedLayout",
-        "lengthBytes": 219
+        "lengthBytes": 212
       }
     },
     {
@@ -515,7 +588,7 @@
         "kind": "fixedBytes",
         "lengthBytes": 2,
         "values": {
-          "0202": "scanError"
+          "0102": "scanError"
         }
       }
     },
@@ -579,7 +652,7 @@
   ],
   "name": "MTR01 Metering Protocol",
   "protocolId": "mtr01-protocol",
-  "protocolVersion": "1.5",
+  "protocolVersion": "1.5.1",
   "schemaVersion": 1,
   "testVectors": []
 }

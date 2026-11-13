@@ -2,7 +2,7 @@
 //  messages.rs
 //  leeway-protocol-mtr01
 //
-//  文件职责：实现 MTR01 V1.5 的 A/B/C/D 业务载荷编解码。
+//  文件职责：实现 MTR01 V1.5.1 的 A/B/C/D 业务载荷编解码。
 //
 
 use crate::Mtr01Error;
@@ -46,7 +46,7 @@ impl Mtr01ARequest {
     }
 }
 
-/// A@ 固定 88 字节实时数据。
+/// A@ 固定 89 字节实时数据。
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct Mtr01AData {
     /// 32 路单体电压原始值，单位 10 mV。
@@ -73,13 +73,15 @@ pub struct Mtr01AData {
     pub rated_capacity_10mah: u16,
     /// 数据来源：01 本地测算，02 BMS 孪生。
     pub data_source: u8,
+    /// 故障码：00 无异常，01 电流读数异常已屏蔽，02 电压读数异常已屏蔽。
+    pub fault_code: u8,
 }
 
 impl Mtr01AData {
     /// A@ 数据域固定长度。
-    pub const PAYLOAD_BYTES: usize = 88;
+    pub const PAYLOAD_BYTES: usize = 89;
 
-    /// 编码为固定 88 字节小端数据域。
+    /// 编码为固定 89 字节小端数据域。
     #[must_use]
     pub fn to_payload(&self) -> Vec<u8> {
         let mut payload = Vec::with_capacity(Self::PAYLOAD_BYTES);
@@ -99,14 +101,15 @@ impl Mtr01AData {
         payload.extend_from_slice(&self.cycle_count.to_le_bytes());
         payload.extend_from_slice(&self.rated_capacity_10mah.to_le_bytes());
         payload.push(self.data_source);
+        payload.push(self.fault_code);
         payload
     }
 
-    /// 从固定 88 字节数据域解析。
+    /// 从固定 89 字节数据域解析。
     ///
     /// # Errors
     ///
-    /// 数据域长度不等于 88 字节时返回稳定错误。
+    /// 数据域长度不等于 89 字节时返回稳定错误。
     pub fn from_payload(payload: &[u8]) -> Result<Self, Mtr01Error> {
         if payload.len() != Self::PAYLOAD_BYTES {
             return Err(Mtr01Error::InvalidPayloadLength);
@@ -143,6 +146,12 @@ impl Mtr01AData {
         if !matches!(data_source, 0x01 | 0x02) {
             return Err(Mtr01Error::UnsupportedValue);
         }
+        let fault_code = *payload
+            .get(offset + 1)
+            .ok_or(Mtr01Error::InvalidPayloadLength)?;
+        if fault_code > 0x02 {
+            return Err(Mtr01Error::UnsupportedValue);
+        }
         Ok(Self {
             cell_voltage_10mv,
             temperature_deci_celsius,
@@ -156,6 +165,7 @@ impl Mtr01AData {
             cycle_count,
             rated_capacity_10mah,
             data_source,
+            fault_code,
         })
     }
 }
@@ -250,7 +260,7 @@ impl Mtr01BindingResponse {
     }
 }
 
-/// V1.5 BMS 型号。
+/// V1.5.1 BMS 型号。
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum Mtr01BmsType {
     /// ATN-。
@@ -288,7 +298,7 @@ impl Mtr01BmsType {
     }
 }
 
-/// V1.5 电池种类。
+/// V1.5.1 电池种类。
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum Mtr01BatteryType {
     /// 三元锂。
@@ -318,7 +328,7 @@ impl Mtr01BatteryType {
     }
 }
 
-/// V1.5 B# cmd 01 基础配置。
+/// V1.5.1 B# cmd 01 基础配置。
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct Mtr01BasicConfig {
     /// BMS 型号。
@@ -391,7 +401,7 @@ impl Mtr01BasicConfig {
     }
 }
 
-/// V1.5 B# cmd 02 运行参数和原始 OCV。
+/// V1.5.1 B# cmd 02 运行参数和原始 OCV。
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct Mtr01RuntimeConfig {
     /// 额定容量，单位 10 mAh。
@@ -443,7 +453,7 @@ impl Mtr01RuntimeConfig {
     }
 }
 
-/// V1.5 B# cmd 03 身份信息。
+/// V1.5.1 B# cmd 03 身份信息。
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct Mtr01IdentityConfig {
     /// BMS 序列号，12 到 32 字节 ASCII。
@@ -511,7 +521,7 @@ impl Mtr01IdentityConfig {
     }
 }
 
-/// V1.5 B# cmd 04 校准和设备重启。
+/// V1.5.1 B# cmd 04 校准和设备重启。
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum Mtr01CalibrationControl {
     /// 电压校准。
@@ -541,7 +551,7 @@ impl Mtr01CalibrationControl {
     }
 }
 
-/// V1.5 B# 请求。
+/// V1.5.1 B# 请求。
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum Mtr01BRequest {
     /// cmd 00 获取设备信息。
@@ -592,7 +602,7 @@ impl Mtr01BRequest {
     }
 }
 
-/// V1.5 B@ cmd 00 设备信息。
+/// V1.5.1 B@ cmd 00 设备信息和当前本地配置。
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct Mtr01DeviceInfoV15 {
     /// 设备名称，最多 10 字节。
@@ -603,11 +613,15 @@ pub struct Mtr01DeviceInfoV15 {
     pub software_version: String,
     /// 硬件版本，最多 5 字节。
     pub hardware_version: String,
+    /// 当前基础配置。
+    pub basic_config: Mtr01BasicConfig,
+    /// 当前运行参数与 OCV 配置。
+    pub runtime_config: Mtr01RuntimeConfig,
 }
 
 impl Mtr01DeviceInfoV15 {
     /// B@ cmd 00 固定长度。
-    pub const PAYLOAD_BYTES: usize = 54;
+    pub const PAYLOAD_BYTES: usize = 113;
 
     /// 编码设备信息。
     ///
@@ -621,6 +635,8 @@ impl Mtr01DeviceInfoV15 {
         payload.extend_from_slice(&left_pad_ascii(&self.serial_number, 32)?);
         payload.extend_from_slice(&left_pad_ascii(&self.software_version, 6)?);
         payload.extend_from_slice(&left_pad_ascii(&self.hardware_version, 5)?);
+        payload.extend_from_slice(&self.basic_config.to_payload()?[1..]);
+        payload.extend_from_slice(&self.runtime_config.to_payload()[1..]);
         Ok(payload)
     }
 
@@ -636,16 +652,24 @@ impl Mtr01DeviceInfoV15 {
         if payload[0] != 0x00 {
             return Err(Mtr01Error::UnsupportedCommand);
         }
+        let mut basic_payload = Vec::with_capacity(Mtr01BasicConfig::PAYLOAD_BYTES);
+        basic_payload.push(0x01);
+        basic_payload.extend_from_slice(&payload[54..66]);
+        let mut runtime_payload = Vec::with_capacity(Mtr01RuntimeConfig::PAYLOAD_BYTES);
+        runtime_payload.push(0x02);
+        runtime_payload.extend_from_slice(&payload[66..113]);
         Ok(Self {
             device_name: strip_left_padding(&payload[1..11])?,
             serial_number: strip_left_padding(&payload[11..43])?,
             software_version: strip_left_padding(&payload[43..49])?,
             hardware_version: strip_left_padding(&payload[49..54])?,
+            basic_config: Mtr01BasicConfig::from_payload(&basic_payload)?,
+            runtime_config: Mtr01RuntimeConfig::from_payload(&runtime_payload)?,
         })
     }
 }
 
-/// V1.5 B@ cmd 01/02/03 反馈。
+/// V1.5.1 B@ cmd 01/02/03 反馈。
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub struct Mtr01BFeedback {
     /// 对应 B# cmd：01、02 或 03。
@@ -695,7 +719,7 @@ impl Mtr01BFeedback {
     }
 }
 
-/// V1.5 B@ 应答。
+/// V1.5.1 B@ 应答。
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum Mtr01BResponse {
     /// cmd 00 设备信息。
@@ -732,7 +756,7 @@ impl Mtr01BResponse {
     }
 }
 
-/// V1.5 C# 请求。
+/// V1.5.1 C# 请求。
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum Mtr01CRequest {
     /// cmd 01 请求扫描列表。
@@ -769,7 +793,7 @@ impl Mtr01CRequest {
     }
 }
 
-/// V1.5 C# cmd 02 连接控制。
+/// V1.5.1 C# cmd 02 连接控制。
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub struct Mtr01ConnectControl {
     /// 01 即时连接、02 绑定自动连接、03 断开解绑。
@@ -847,7 +871,7 @@ impl Mtr01ConnectControl {
     }
 }
 
-/// V1.5 C@ 连接反馈。
+/// V1.5.1 C@ cmd 02 连接反馈。
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum Mtr01ConnectionFeedback {
     /// 连接成功。
@@ -861,7 +885,7 @@ impl Mtr01ConnectionFeedback {
     #[must_use]
     pub const fn to_payload(self) -> [u8; 2] {
         [
-            0x01,
+            0x02,
             match self {
                 Self::Success => 0x01,
                 Self::Failure => 0x02,
@@ -870,10 +894,10 @@ impl Mtr01ConnectionFeedback {
     }
 }
 
-/// V1.5 C@ 扫描槽位。
+/// V1.5.1 C@ cmd 01 扫描槽位。
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum Mtr01ScanSlot {
-    /// 未使用槽位，31 字节全部为 EF。
+    /// 未使用槽位，30 字节全部为 EF。
     Empty,
     /// 一个 BLE 设备。
     Device {
@@ -890,7 +914,7 @@ pub enum Mtr01ScanSlot {
 
 impl Mtr01ScanSlot {
     /// 单个扫描槽位长度。
-    pub const BYTES: usize = 31;
+    pub const BYTES: usize = 30;
 
     fn to_bytes(&self) -> Result<[u8; Self::BYTES], Mtr01Error> {
         match self {
@@ -906,10 +930,10 @@ impl Mtr01ScanSlot {
                 }
                 let mut slot = [DELIMITER; Self::BYTES];
                 let name = left_pad_ascii(name, 22)?;
-                slot[1..23].copy_from_slice(&name);
-                slot[23] = *address_type;
-                slot[24..30].copy_from_slice(address);
-                slot[30] = u8::from_ne_bytes(rssi.to_ne_bytes());
+                slot[..22].copy_from_slice(&name);
+                slot[22] = *address_type;
+                slot[23..29].copy_from_slice(address);
+                slot[29] = u8::from_ne_bytes(rssi.to_ne_bytes());
                 Ok(slot)
             }
         }
@@ -922,21 +946,21 @@ impl Mtr01ScanSlot {
         if slot.iter().all(|byte| *byte == DELIMITER) {
             return Ok(Self::Empty);
         }
-        if slot[0] != DELIMITER || slot[23] == DELIMITER {
+        if slot[22] == DELIMITER {
             return Err(Mtr01Error::InvalidDelimiter);
         }
         Ok(Self::Device {
-            name: strip_left_padding(&slot[1..23])?,
-            address_type: slot[23],
-            address: slot[24..30]
+            name: strip_left_padding(&slot[..22])?,
+            address_type: slot[22],
+            address: slot[23..29]
                 .try_into()
                 .map_err(|_| Mtr01Error::InvalidPayloadLength)?,
-            rssi: i8::from_ne_bytes([slot[30]]),
+            rssi: i8::from_ne_bytes([slot[29]]),
         })
     }
 }
 
-/// V1.5 C@ 扫描列表。
+/// V1.5.1 C@ cmd 01 扫描列表。
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct Mtr01ScanList {
     /// 7 个固定槽位，按 RSSI 从强到弱排列。
@@ -945,7 +969,7 @@ pub struct Mtr01ScanList {
 
 impl Mtr01ScanList {
     /// 扫描列表固定长度。
-    pub const PAYLOAD_BYTES: usize = 219;
+    pub const PAYLOAD_BYTES: usize = 212;
 
     /// 编码扫描列表。
     ///
@@ -956,7 +980,7 @@ impl Mtr01ScanList {
         let mut previous_rssi = None;
         let mut saw_empty = false;
         let mut payload = Vec::with_capacity(Self::PAYLOAD_BYTES);
-        payload.extend_from_slice(&[0x02, 0x01]);
+        payload.extend_from_slice(&[0x01, 0x01]);
         for slot in &self.slots {
             match slot {
                 Mtr01ScanSlot::Empty => {
@@ -980,7 +1004,7 @@ impl Mtr01ScanList {
     ///
     /// 长度、前缀、槽位或排序不合法时返回稳定错误。
     pub fn from_payload(payload: &[u8]) -> Result<Self, Mtr01Error> {
-        if payload.len() != Self::PAYLOAD_BYTES || payload.get(..2) != Some(&[0x02, 0x01]) {
+        if payload.len() != Self::PAYLOAD_BYTES || payload.get(..2) != Some(&[0x01, 0x01]) {
             return Err(Mtr01Error::InvalidPayloadLength);
         }
         let mut slots = Vec::with_capacity(7);
@@ -1006,18 +1030,18 @@ impl Mtr01ScanList {
     }
 }
 
-/// V1.5 C@ 应答。
+/// V1.5.1 C@ 应答。
 #[allow(
     clippy::large_enum_variant,
-    reason = "扫描列表是固定 219 字节协议载荷，枚举按值承载以便直接编解码"
+    reason = "扫描列表是固定 212 字节协议载荷，枚举按值承载以便直接编解码"
 )]
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum Mtr01CResponse {
-    /// cmd 01 连接反馈。
+    /// cmd 02 连接反馈。
     Connection(Mtr01ConnectionFeedback),
-    /// cmd 02 扫描列表。
+    /// cmd 01 扫描列表。
     ScanList(Mtr01ScanList),
-    /// cmd 02 扫描失败。
+    /// cmd 01 扫描失败。
     ScanError,
 }
 
@@ -1031,7 +1055,7 @@ impl Mtr01CResponse {
         match self {
             Self::Connection(value) => Ok(value.to_payload().to_vec()),
             Self::ScanList(value) => value.to_payload(),
-            Self::ScanError => Ok(vec![0x02, 0x02]),
+            Self::ScanError => Ok(vec![0x01, 0x02]),
         }
     }
 
@@ -1042,12 +1066,11 @@ impl Mtr01CResponse {
     /// cmd、长度或载荷不合法时返回稳定错误。
     pub fn from_payload(payload: &[u8]) -> Result<Self, Mtr01Error> {
         match payload {
-            [0x01, 0x01] => Ok(Self::Connection(Mtr01ConnectionFeedback::Success)),
-            [0x01, 0x02] => Ok(Self::Connection(Mtr01ConnectionFeedback::Failure)),
-            [0x02, 0x01, ..] => Ok(Self::ScanList(Mtr01ScanList::from_payload(payload)?)),
-            [0x02, 0x02] => Ok(Self::ScanError),
-            [] | [0x01, ..] => Err(Mtr01Error::InvalidPayloadLength),
-            [0x02, ..] => Err(Mtr01Error::UnsupportedValue),
+            [0x01, 0x01, ..] => Ok(Self::ScanList(Mtr01ScanList::from_payload(payload)?)),
+            [0x01, 0x02] => Ok(Self::ScanError),
+            [0x02, 0x01] => Ok(Self::Connection(Mtr01ConnectionFeedback::Success)),
+            [0x02, 0x02] => Ok(Self::Connection(Mtr01ConnectionFeedback::Failure)),
+            [] | [0x01, ..] | [0x02, ..] => Err(Mtr01Error::InvalidPayloadLength),
             _ => Err(Mtr01Error::UnsupportedCommand),
         }
     }

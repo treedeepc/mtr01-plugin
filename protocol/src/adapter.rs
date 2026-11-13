@@ -49,11 +49,11 @@ pub const MTR01_MESSAGE_C_SCAN_REQUEST: &str = "cScanRequest";
 pub const MTR01_MESSAGE_C_CONNECT_CONTROL: &str = "cConnectControl";
 /// C# cmd 02 control 03 断开并解绑。
 pub const MTR01_MESSAGE_C_DISCONNECT_AND_UNBIND: &str = "cDisconnectAndUnbind";
-/// C@ cmd 01 连接反馈。
+/// C@ cmd 02 连接反馈。
 pub const MTR01_MESSAGE_C_CONNECTION_FEEDBACK: &str = "cConnectionFeedback";
-/// C@ cmd 02 扫描列表。
+/// C@ cmd 01 扫描列表。
 pub const MTR01_MESSAGE_C_SCAN_LIST: &str = "cScanList";
-/// C@ cmd 02 扫描错误。
+/// C@ cmd 01 扫描错误。
 pub const MTR01_MESSAGE_C_SCAN_ERROR: &str = "cScanError";
 /// D# 未绑定消息 ID。
 pub const MTR01_MESSAGE_D_UNBOUND: &str = "dUnbound";
@@ -114,7 +114,7 @@ impl ProtocolAdapter for Mtr01Adapter {
     }
 
     fn protocol_version(&self) -> &'static str {
-        "1.5"
+        "1.5.1"
     }
 
     fn definition(&self) -> Value {
