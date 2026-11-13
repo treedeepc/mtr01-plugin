@@ -8,6 +8,8 @@
 - Bundle 使用 canonical BLE Profile，通知载荷块为 244 字节；
 - 默认场景 ID 为 `mtr01-sim`，收到 `aSubscribe` 后发送 `aData`；
 - A@ 报告暴露电量、MOS 温度、总电压、电流、功率和循环次数六个 editable field。
+- 默认场景通过 `editableCollections.bmsDevices` 暴露 7 个 BMS 扫描槽位；
+  模拟器只显示实际 BMS，编码 C@ 时自动补齐 30 字节 EF 空槽。
 
 修改协议时应同时更新：
 

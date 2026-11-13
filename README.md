@@ -6,6 +6,7 @@
 - 协议 ID：`mtr01-protocol`
 - 生成 crate：`leeway-protocol-mtr01-plugin`
 - 默认场景：`mtr01-sim`
+- BMS 列表：`editableCollections.bmsDevices`，协议容量 7，每槽 30 字节
 
 ## 目录
 
