@@ -183,6 +183,37 @@ fn encodes_and_decodes_a_request_and_a_data_like_static_adapter() {
 }
 
 #[test]
+fn encodes_runtime_config_request_frame() {
+    let adapter = Mtr01Adapter::new(TEST_KEY);
+    let payload = Mtr01RuntimeConfig {
+        rated_capacity_10mah: 2_000,
+        cell_count: 16,
+        consumption_wh_per_100km: 2_500,
+        ocv_raw: [0xEF; 42],
+    }
+    .to_payload();
+    let frame = adapter
+        .encode(
+            MTR01_MESSAGE_B_RUNTIME_CONFIG,
+            &ProtocolValues::from([("payload".into(), ProtocolValue::Bytes(payload))]),
+        )
+        .expect("runtime config frame");
+    assert_eq!(
+        hex::encode(frame),
+        "54435a5142233002d00710c409efefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefe795c2dbe5d93d5aa7e50181199abb17"
+    );
+    assert_eq!(
+        adapter
+            .decode(&hex::decode(
+                "54435a5142233002d00710c409efefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefe795c2dbe5d93d5aa7e50181199abb17"
+            ).expect("frame hex"))
+            .expect("decode")
+            .message_id,
+        MTR01_MESSAGE_B_RUNTIME_CONFIG
+    );
+}
+
+#[test]
 fn stream_reassembles_split_mtr01_frames() {
     let handler = Mtr01PluginHandler::new();
     let handle = create(&handler, TEST_KEY);
@@ -499,7 +530,12 @@ fn example_bundle_metadata_matches_runtime_contract() {
     assert_eq!(scenario["name"], "MTR01 Simulator");
     assert_eq!(scenario["protocolId"], "mtr01-protocol");
     assert_eq!(scenario["protocolVersion"], "1.5.1");
-    for (variable, expected_bytes) in [("report", 89), ("deviceInfo", 113), ("scanList", 212)] {
+    for (variable, expected_bytes) in [
+        ("report", 89),
+        ("deviceInfo", 113),
+        ("runtimeOcvRaw", 42),
+        ("scanList", 212),
+    ] {
         let bytes = hex::decode(
             scenario["initialState"][variable]["hex"]
                 .as_str()
@@ -562,9 +598,7 @@ fn example_bundle_metadata_matches_runtime_contract() {
         "faultCode",
     ] {
         assert!(
-            editable_fields
-                .iter()
-                .any(|field| field["id"] == field_id),
+            editable_fields.iter().any(|field| field["id"] == field_id),
             "missing complete field {field_id}"
         );
     }
@@ -596,6 +630,7 @@ fn example_bundle_metadata_matches_runtime_contract() {
         .expect("device functions");
     for function_id in [
         "configureBms",
+        "configureRuntime",
         "connectOnceBms",
         "bindAndConnectBms",
         "disconnectBms",

@@ -24,6 +24,13 @@
     "configuredBaudRate": 0,
     "configuredVehicleProtocol": "",
     "configuredVehicleBrand": "",
+    "runtimeRatedCapacity10mAh": 2000,
+    "runtimeCellCount": 16,
+    "runtimeConsumptionWhPer100km": 2500,
+    "runtimeOcvRaw": {
+      "kind": "bytes",
+      "hex": "efefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefef"
+    },
     "connectionMode": 0,
     "connectedAddressType": 0,
     "connectedAddress": {
@@ -133,22 +140,6 @@
       ]
     },
     {
-      "id": "apply-runtime-config",
-      "messageId": "bRuntimeConfig",
-      "actions": [
-        {
-          "kind": "send",
-          "messageId": "bRuntimeConfigFeedback",
-          "values": {
-            "payload": {
-              "kind": "variable",
-              "name": "runtimeFeedback"
-            }
-          }
-        }
-      ]
-    },
-    {
       "id": "apply-identity-config",
       "messageId": "bIdentityConfig",
       "actions": [
@@ -249,16 +240,32 @@
           "messageId": "bBasicConfig",
           "when": []
         },
-        "enabledWhen": {
-          "variable": "configured",
-          "equals": false
-        },
         "bind": [
-          {"from": "bmsType", "to": "configuredBmsType"},
-          {"from": "batteryType", "to": "configuredBatteryType"},
-          {"from": "baudRate", "to": "configuredBaudRate"},
-          {"from": "vehicleProtocol", "to": "configuredVehicleProtocol"},
-          {"from": "vehicleBrand", "to": "configuredVehicleBrand"}
+          {
+            "from": "bmsType",
+            "to": "configuredBmsType",
+            "editableFieldId": "bmsType"
+          },
+          {
+            "from": "batteryType",
+            "to": "configuredBatteryType",
+            "editableFieldId": "batteryType"
+          },
+          {
+            "from": "baudRate",
+            "to": "configuredBaudRate",
+            "editableFieldId": "baudRate"
+          },
+          {
+            "from": "vehicleProtocol",
+            "to": "configuredVehicleProtocol",
+            "editableFieldId": "vehicleProtocol"
+          },
+          {
+            "from": "vehicleBrand",
+            "to": "configuredVehicleBrand",
+            "editableFieldId": "vehicleBrand"
+          }
         ],
         "actions": [
           {
@@ -271,6 +278,49 @@
             "messageId": "bBasicConfigFeedback",
             "values": {
               "payload": {"kind": "variable", "name": "basicFeedback"}
+            }
+          }
+        ]
+      },
+      {
+        "id": "configureRuntime",
+        "label": "Configure runtime parameters",
+        "localizedLabels": {
+          "zh-Hans": "配置运行参数",
+          "zh-Hant": "配置執行參數"
+        },
+        "trigger": {
+          "messageId": "bRuntimeConfig",
+          "when": []
+        },
+        "bind": [
+          {
+            "from": "ratedCapacity10mAh",
+            "to": "runtimeRatedCapacity10mAh",
+            "editableFieldId": "deviceRatedCapacity10mAh"
+          },
+          {
+            "from": "cellCount",
+            "to": "runtimeCellCount",
+            "editableFieldId": "cellCount"
+          },
+          {
+            "from": "consumptionWhPer100km",
+            "to": "runtimeConsumptionWhPer100km",
+            "editableFieldId": "consumptionWhPer100km"
+          },
+          {
+            "from": "ocvRaw",
+            "to": "runtimeOcvRaw",
+            "editableFieldId": "ocvRaw"
+          }
+        ],
+        "actions": [
+          {
+            "kind": "send",
+            "messageId": "bRuntimeConfigFeedback",
+            "values": {
+              "payload": {"kind": "variable", "name": "runtimeFeedback"}
             }
           }
         ]
