@@ -385,6 +385,402 @@
           "zh-Hans": "次",
           "zh-Hant": "次"
         }
+      },
+      {
+        "id": "cellVoltages10mV",
+        "label": "Cell Voltages",
+        "localizedLabels": {
+          "zh-Hans": "单体电压",
+          "zh-Hant": "單體電壓"
+        },
+        "target": {
+          "kind": "fixedLayoutField",
+          "variable": "report",
+          "messageId": "aData",
+          "fieldId": "cellVoltage10mV"
+        },
+        "control": "hexBytes",
+        "bytes": 64
+      },
+      {
+        "id": "temperaturesDeciCelsius",
+        "label": "Cell Temperatures",
+        "localizedLabels": {
+          "zh-Hans": "电芯温度",
+          "zh-Hant": "電芯溫度"
+        },
+        "target": {
+          "kind": "fixedLayoutField",
+          "variable": "report",
+          "messageId": "aData",
+          "fieldId": "temperatureDeciCelsius"
+        },
+        "control": "hexBytes",
+        "bytes": 8
+      },
+      {
+        "id": "dischargeState",
+        "label": "Discharge State",
+        "localizedLabels": {
+          "zh-Hans": "放电状态",
+          "zh-Hant": "放電狀態"
+        },
+        "target": {
+          "kind": "fixedLayoutField",
+          "variable": "report",
+          "messageId": "aData",
+          "fieldId": "dischargeState"
+        },
+        "control": "enum",
+        "minimum": 0,
+        "maximum": 1,
+        "step": 1,
+        "options": [
+          {"value": 0, "label": "Idle", "localizedLabels": {"zh-Hans": "未放电", "zh-Hant": "未放電"}},
+          {"value": 1, "label": "Discharging", "localizedLabels": {"zh-Hans": "放电中", "zh-Hant": "放電中"}}
+        ]
+      },
+      {
+        "id": "chargeState",
+        "label": "Charge State",
+        "localizedLabels": {
+          "zh-Hans": "充电状态",
+          "zh-Hant": "充電狀態"
+        },
+        "target": {
+          "kind": "fixedLayoutField",
+          "variable": "report",
+          "messageId": "aData",
+          "fieldId": "chargeState"
+        },
+        "control": "enum",
+        "minimum": 0,
+        "maximum": 1,
+        "step": 1,
+        "options": [
+          {"value": 0, "label": "Idle", "localizedLabels": {"zh-Hans": "未充电", "zh-Hant": "未充電"}},
+          {"value": 1, "label": "Charging", "localizedLabels": {"zh-Hans": "充电中", "zh-Hant": "充電中"}}
+        ]
+      },
+      {
+        "id": "ratedCapacity10mAh",
+        "label": "Rated Capacity",
+        "localizedLabels": {
+          "zh-Hans": "额定容量",
+          "zh-Hant": "額定容量"
+        },
+        "target": {
+          "kind": "fixedLayoutField",
+          "variable": "report",
+          "messageId": "aData",
+          "fieldId": "ratedCapacity10mAh"
+        },
+        "control": "integer",
+        "minimum": 0,
+        "maximum": 65535,
+        "step": 1,
+        "unit": "10mAh",
+        "localizedUnits": {
+          "zh-Hans": "10mAh",
+          "zh-Hant": "10mAh"
+        }
+      },
+      {
+        "id": "dataSource",
+        "label": "Data Source",
+        "localizedLabels": {
+          "zh-Hans": "数据来源",
+          "zh-Hant": "資料來源"
+        },
+        "target": {
+          "kind": "fixedLayoutField",
+          "variable": "report",
+          "messageId": "aData",
+          "fieldId": "dataSource"
+        },
+        "control": "enum",
+        "minimum": 1,
+        "maximum": 2,
+        "step": 1,
+        "options": [
+          {"value": 1, "label": "Local estimate", "localizedLabels": {"zh-Hans": "本地测算", "zh-Hant": "本機估算"}},
+          {"value": 2, "label": "BMS twin", "localizedLabels": {"zh-Hans": "BMS 孪生", "zh-Hant": "BMS 孿生"}}
+        ]
+      },
+      {
+        "id": "faultCode",
+        "label": "Fault Code",
+        "localizedLabels": {
+          "zh-Hans": "故障码",
+          "zh-Hant": "故障碼"
+        },
+        "target": {
+          "kind": "fixedLayoutField",
+          "variable": "report",
+          "messageId": "aData",
+          "fieldId": "faultCode"
+        },
+        "control": "enum",
+        "minimum": 0,
+        "maximum": 2,
+        "step": 1,
+        "options": [
+          {"value": 0, "label": "None", "localizedLabels": {"zh-Hans": "无异常", "zh-Hant": "無異常"}},
+          {"value": 1, "label": "Current masked", "localizedLabels": {"zh-Hans": "电流读数已屏蔽", "zh-Hant": "電流讀數已屏蔽"}},
+          {"value": 2, "label": "Voltage masked", "localizedLabels": {"zh-Hans": "电压读数已屏蔽", "zh-Hant": "電壓讀數已屏蔽"}}
+        ]
+      },
+      {
+        "id": "deviceName",
+        "label": "Device Name",
+        "localizedLabels": {
+          "zh-Hans": "设备名称",
+          "zh-Hant": "裝置名稱"
+        },
+        "target": {
+          "kind": "fixedLayoutField",
+          "variable": "deviceInfo",
+          "messageId": "bDeviceInfo",
+          "fieldId": "deviceName"
+        },
+        "control": "ascii",
+        "maxBytes": 10
+      },
+      {
+        "id": "serialNumber",
+        "label": "Serial Number",
+        "localizedLabels": {
+          "zh-Hans": "序列号",
+          "zh-Hant": "序號"
+        },
+        "target": {
+          "kind": "fixedLayoutField",
+          "variable": "deviceInfo",
+          "messageId": "bDeviceInfo",
+          "fieldId": "serialNumber"
+        },
+        "control": "ascii",
+        "maxBytes": 32
+      },
+      {
+        "id": "softwareVersion",
+        "label": "Software Version",
+        "localizedLabels": {
+          "zh-Hans": "软件版本",
+          "zh-Hant": "軟體版本"
+        },
+        "target": {
+          "kind": "fixedLayoutField",
+          "variable": "deviceInfo",
+          "messageId": "bDeviceInfo",
+          "fieldId": "softwareVersion"
+        },
+        "control": "ascii",
+        "maxBytes": 6
+      },
+      {
+        "id": "hardwareVersion",
+        "label": "Hardware Version",
+        "localizedLabels": {
+          "zh-Hans": "硬件版本",
+          "zh-Hant": "硬體版本"
+        },
+        "target": {
+          "kind": "fixedLayoutField",
+          "variable": "deviceInfo",
+          "messageId": "bDeviceInfo",
+          "fieldId": "hardwareVersion"
+        },
+        "control": "ascii",
+        "maxBytes": 5
+      },
+      {
+        "id": "bmsType",
+        "label": "BMS Type",
+        "localizedLabels": {
+          "zh-Hans": "BMS 型号",
+          "zh-Hant": "BMS 型號"
+        },
+        "target": {
+          "kind": "fixedLayoutField",
+          "variable": "deviceInfo",
+          "messageId": "bDeviceInfo",
+          "fieldId": "bmsType"
+        },
+        "control": "enum",
+        "minimum": 1,
+        "maximum": 5,
+        "step": 1,
+        "options": [
+          {"value": 1, "label": "ATN-"},
+          {"value": 2, "label": "ATN@"},
+          {"value": 3, "label": "JBD"},
+          {"value": 4, "label": "JK"},
+          {"value": 5, "label": "YY"}
+        ]
+      },
+      {
+        "id": "batteryType",
+        "label": "Battery Type",
+        "localizedLabels": {
+          "zh-Hans": "电池种类",
+          "zh-Hant": "電池種類"
+        },
+        "target": {
+          "kind": "fixedLayoutField",
+          "variable": "deviceInfo",
+          "messageId": "bDeviceInfo",
+          "fieldId": "batteryType"
+        },
+        "control": "enum",
+        "minimum": 1,
+        "maximum": 3,
+        "step": 1,
+        "options": [
+          {"value": 1, "label": "Ternary lithium", "localizedLabels": {"zh-Hans": "三元锂", "zh-Hant": "三元鋰"}},
+          {"value": 2, "label": "Lithium iron phosphate", "localizedLabels": {"zh-Hans": "磷酸铁锂", "zh-Hant": "磷酸鐵鋰"}},
+          {"value": 3, "label": "Lead acid", "localizedLabels": {"zh-Hans": "铅酸", "zh-Hant": "鉛酸"}}
+        ]
+      },
+      {
+        "id": "baudRate",
+        "label": "Vehicle Baud Rate",
+        "localizedLabels": {
+          "zh-Hans": "整车协议波特率",
+          "zh-Hant": "整車協議鮑率"
+        },
+        "target": {
+          "kind": "fixedLayoutField",
+          "variable": "deviceInfo",
+          "messageId": "bDeviceInfo",
+          "fieldId": "baudRate"
+        },
+        "control": "integer",
+        "minimum": 0,
+        "maximum": 16777215,
+        "step": 1,
+        "unit": "bps",
+        "localizedUnits": {
+          "zh-Hans": "bps",
+          "zh-Hant": "bps"
+        }
+      },
+      {
+        "id": "vehicleProtocol",
+        "label": "Vehicle Protocol",
+        "localizedLabels": {
+          "zh-Hans": "整车协议",
+          "zh-Hant": "整車協議"
+        },
+        "target": {
+          "kind": "fixedLayoutField",
+          "variable": "deviceInfo",
+          "messageId": "bDeviceInfo",
+          "fieldId": "vehicleProtocol"
+        },
+        "control": "ascii",
+        "maxBytes": 2
+      },
+      {
+        "id": "vehicleBrand",
+        "label": "Vehicle Brand",
+        "localizedLabels": {
+          "zh-Hans": "车辆品牌",
+          "zh-Hant": "車輛品牌"
+        },
+        "target": {
+          "kind": "fixedLayoutField",
+          "variable": "deviceInfo",
+          "messageId": "bDeviceInfo",
+          "fieldId": "vehicleBrand"
+        },
+        "control": "ascii",
+        "maxBytes": 5
+      },
+      {
+        "id": "deviceRatedCapacity10mAh",
+        "label": "Configured Rated Capacity",
+        "localizedLabels": {
+          "zh-Hans": "配置额定容量",
+          "zh-Hant": "配置額定容量"
+        },
+        "target": {
+          "kind": "fixedLayoutField",
+          "variable": "deviceInfo",
+          "messageId": "bDeviceInfo",
+          "fieldId": "ratedCapacity10mAh"
+        },
+        "control": "integer",
+        "minimum": 0,
+        "maximum": 65535,
+        "step": 1,
+        "unit": "10mAh",
+        "localizedUnits": {
+          "zh-Hans": "10mAh",
+          "zh-Hant": "10mAh"
+        }
+      },
+      {
+        "id": "cellCount",
+        "label": "Cell Count",
+        "localizedLabels": {
+          "zh-Hans": "电芯串数",
+          "zh-Hant": "電芯串數"
+        },
+        "target": {
+          "kind": "fixedLayoutField",
+          "variable": "deviceInfo",
+          "messageId": "bDeviceInfo",
+          "fieldId": "cellCount"
+        },
+        "control": "integer",
+        "minimum": 0,
+        "maximum": 255,
+        "step": 1,
+        "unit": "cells",
+        "localizedUnits": {
+          "zh-Hans": "串",
+          "zh-Hant": "串"
+        }
+      },
+      {
+        "id": "consumptionWhPer100km",
+        "label": "Consumption",
+        "localizedLabels": {
+          "zh-Hans": "百公里电耗",
+          "zh-Hant": "百公里電耗"
+        },
+        "target": {
+          "kind": "fixedLayoutField",
+          "variable": "deviceInfo",
+          "messageId": "bDeviceInfo",
+          "fieldId": "consumptionWhPer100km"
+        },
+        "control": "integer",
+        "minimum": 0,
+        "maximum": 65535,
+        "step": 1,
+        "unit": "Wh/100km",
+        "localizedUnits": {
+          "zh-Hans": "Wh/100km",
+          "zh-Hant": "Wh/100km"
+        }
+      },
+      {
+        "id": "ocvRaw",
+        "label": "OCV Raw",
+        "localizedLabels": {
+          "zh-Hans": "OCV 原始数据",
+          "zh-Hant": "OCV 原始資料"
+        },
+        "target": {
+          "kind": "fixedLayoutField",
+          "variable": "deviceInfo",
+          "messageId": "bDeviceInfo",
+          "fieldId": "ocvRaw"
+        },
+        "control": "hexBytes",
+        "bytes": 42
       }
     ]
   },

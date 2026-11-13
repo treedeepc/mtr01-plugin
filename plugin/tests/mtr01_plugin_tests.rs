@@ -511,7 +511,7 @@ fn example_bundle_metadata_matches_runtime_contract() {
     let editable_fields = scenario["editableFields"]["fields"]
         .as_array()
         .expect("editable fields");
-    assert_eq!(editable_fields.len(), 6);
+    assert_eq!(editable_fields.len(), 26);
     for field_id in [
         "stateOfChargePercent",
         "mosTemperatureDeciCelsius",
@@ -537,6 +537,35 @@ fn example_bundle_metadata_matches_runtime_contract() {
             field["localizedUnits"]["zh-Hans"]
                 .as_str()
                 .is_some_and(|text| !text.is_empty())
+        );
+    }
+    for field_id in [
+        "deviceName",
+        "serialNumber",
+        "softwareVersion",
+        "hardwareVersion",
+        "bmsType",
+        "batteryType",
+        "baudRate",
+        "vehicleProtocol",
+        "vehicleBrand",
+        "deviceRatedCapacity10mAh",
+        "cellCount",
+        "consumptionWhPer100km",
+        "ocvRaw",
+        "cellVoltages10mV",
+        "temperaturesDeciCelsius",
+        "dischargeState",
+        "chargeState",
+        "ratedCapacity10mAh",
+        "dataSource",
+        "faultCode",
+    ] {
+        assert!(
+            editable_fields
+                .iter()
+                .any(|field| field["id"] == field_id),
+            "missing complete field {field_id}"
         );
     }
     let collections = scenario["editableCollections"]["collections"]
