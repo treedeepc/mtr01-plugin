@@ -591,6 +591,22 @@ fn example_bundle_metadata_matches_runtime_contract() {
             / 2,
         30
     );
+    let functions = scenario["deviceFunctions"]["functions"]
+        .as_array()
+        .expect("device functions");
+    for function_id in [
+        "configureBms",
+        "connectOnceBms",
+        "bindAndConnectBms",
+        "disconnectBms",
+    ] {
+        assert!(
+            functions
+                .iter()
+                .any(|function| function["id"] == function_id),
+            "missing device function {function_id}"
+        );
+    }
 
     let configuration: Value =
         serde_json::from_str(BUNDLE_CONFIGURATION).expect("configuration JSON");

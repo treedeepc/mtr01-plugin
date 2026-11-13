@@ -7,10 +7,9 @@
 - 支持 V1.5.1 的 A/B/C/D 请求和应答消息；
 - Bundle 使用 canonical BLE Profile，通知载荷块为 244 字节；
 - 默认场景 ID 为 `mtr01-sim`，收到 `aSubscribe` 后发送 `aData`；
-- A@ 报告暴露电量、MOS 温度、总电压、电流、功率和循环次数六个 editable field。
 - 默认场景通过 `editableCollections.bmsDevices` 暴露 7 个 BMS 扫描槽位；
   模拟器只显示实际 BMS，编码 C@ 时自动补齐 30 字节 EF 空槽。
-- `editableFields` 覆盖 A@ 全部可读字段、B@ 设备信息以及基础/运行配置字段：
+- `editableFields` 的 26 个字段覆盖 A@ 全部可读字段、B@ 设备信息以及基础/运行配置字段：
   单体电压数组、电芯温度数组、状态、容量、数据来源、故障码、名称、序列号、
   软硬件版本、BMS/电池型号、波特率、整车协议、车辆品牌、电芯串数、电耗和 OCV。
 
@@ -44,6 +43,19 @@
 `configuration.json` 声明必需的 16 字节 `cmacKey`。秘密只能以固定长度
 `secretBytes/hex` 输入，由宿主在调用前解码为 wire Base64。不要在日志、错误或
 测试夹具中记录秘密。
+
+## BMS 设备功能
+
+`deviceFunctions` 只使用 V1.5.1 现有消息，不增加线上字段：
+
+- `configureBms` 接收 B#01，保存 BMS 型号、电池类型、波特率、整车协议和品牌；
+- `connectOnceBms` 处理 C#02 control 01，保存连接地址并切换到 BMS 孪生报告；
+- `bindAndConnectBms` 处理 C#02 control 02，切换报告并记录已绑定；
+- `disconnectBms` 处理 C#02 control 03，恢复本地测算报告且不发送 C@。
+
+连接和断开通过把 `report` 切换到 `bmsTwinReport` 或 `localReport` 改变 A@
+offset 87 的 `dataSource`，A@ 仍固定为 89 字节。B#01 同时保存当前配置状态，
+使后续连接功能可以由 `configured` 启用。模拟器通用 Core 不包含 MTR01 分支。
 
 ## 安全边界
 

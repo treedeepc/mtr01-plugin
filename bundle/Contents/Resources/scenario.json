@@ -10,6 +10,28 @@
       "kind": "bytes",
       "hex": "40014001400140014001400140014001400140014001400140014001400140014001400140014001400140014001400140014001400140014001400140014001fa00fb00fc00fd003e0157002885ffc0ff01004101d0070100"
     },
+    "localReport": {
+      "kind": "bytes",
+      "hex": "40014001400140014001400140014001400140014001400140014001400140014001400140014001400140014001400140014001400140014001400140014001fa00fb00fc00fd003e0157002885ffc0ff01004101d0070100"
+    },
+    "bmsTwinReport": {
+      "kind": "bytes",
+      "hex": "40014001400140014001400140014001400140014001400140014001400140014001400140014001400140014001400140014001400140014001400140014001fa00fb00fc00fd003e0157002885ffc0ff01004101d0070200"
+    },
+    "configured": false,
+    "configuredBmsType": 0,
+    "configuredBatteryType": 0,
+    "configuredBaudRate": 0,
+    "configuredVehicleProtocol": "",
+    "configuredVehicleBrand": "",
+    "connectionMode": 0,
+    "connectedAddressType": 0,
+    "connectedAddress": {
+      "kind": "bytes",
+      "hex": "efefefefefef"
+    },
+    "connected": false,
+    "bound": false,
     "deviceInfo": {
       "kind": "bytes",
       "hex": "00efef4d5452303153494defefefefefefefefefefefefefefefefef424d5332303236313130353030303153572d312e35ef48572d31030101c2005253efef4e4955d00710c409efefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefef"
@@ -111,22 +133,6 @@
       ]
     },
     {
-      "id": "apply-basic-config",
-      "messageId": "bBasicConfig",
-      "actions": [
-        {
-          "kind": "send",
-          "messageId": "bBasicConfigFeedback",
-          "values": {
-            "payload": {
-              "kind": "variable",
-              "name": "basicFeedback"
-            }
-          }
-        }
-      ]
-    },
-    {
       "id": "apply-runtime-config",
       "messageId": "bRuntimeConfig",
       "actions": [
@@ -169,22 +175,6 @@
             "payload": {
               "kind": "variable",
               "name": "scanList"
-            }
-          }
-        }
-      ]
-    },
-    {
-      "id": "connect-control",
-      "messageId": "cConnectControl",
-      "actions": [
-        {
-          "kind": "send",
-          "messageId": "cConnectionFeedback",
-          "values": {
-            "payload": {
-              "kind": "variable",
-              "name": "connectionFeedback"
             }
           }
         }
@@ -245,6 +235,167 @@
       ]
     }
   ],
+  "deviceFunctions": {
+    "schemaVersion": 1,
+    "functions": [
+      {
+        "id": "configureBms",
+        "label": "Configure BMS",
+        "localizedLabels": {
+          "zh-Hans": "配置 BMS",
+          "zh-Hant": "配置 BMS"
+        },
+        "trigger": {
+          "messageId": "bBasicConfig",
+          "when": []
+        },
+        "enabledWhen": {
+          "variable": "configured",
+          "equals": false
+        },
+        "bind": [
+          {"from": "bmsType", "to": "configuredBmsType"},
+          {"from": "batteryType", "to": "configuredBatteryType"},
+          {"from": "baudRate", "to": "configuredBaudRate"},
+          {"from": "vehicleProtocol", "to": "configuredVehicleProtocol"},
+          {"from": "vehicleBrand", "to": "configuredVehicleBrand"}
+        ],
+        "actions": [
+          {
+            "kind": "set",
+            "variable": "configured",
+            "value": {"kind": "literal", "value": true}
+          },
+          {
+            "kind": "send",
+            "messageId": "bBasicConfigFeedback",
+            "values": {
+              "payload": {"kind": "variable", "name": "basicFeedback"}
+            }
+          }
+        ]
+      },
+      {
+        "id": "connectOnceBms",
+        "label": "Connect BMS once",
+        "localizedLabels": {
+          "zh-Hans": "即时连接 BMS",
+          "zh-Hant": "即時連接 BMS"
+        },
+        "trigger": {
+          "messageId": "cConnectControl",
+          "when": [{"field": "control", "oneOf": [1]}]
+        },
+        "enabledWhen": {
+          "variable": "configured",
+          "equals": true
+        },
+        "bind": [
+          {"from": "control", "to": "connectionMode"},
+          {"from": "addressType", "to": "connectedAddressType"},
+          {"from": "address", "to": "connectedAddress"}
+        ],
+        "actions": [
+          {
+            "kind": "set",
+            "variable": "connected",
+            "value": {"kind": "literal", "value": true}
+          },
+          {
+            "kind": "set",
+            "variable": "bound",
+            "value": {"kind": "literal", "value": false}
+          },
+          {
+            "kind": "set",
+            "variable": "report",
+            "value": {"kind": "variable", "name": "bmsTwinReport"}
+          },
+          {
+            "kind": "send",
+            "messageId": "cConnectionFeedback",
+            "values": {
+              "payload": {"kind": "variable", "name": "connectionFeedback"}
+            }
+          }
+        ]
+      },
+      {
+        "id": "bindAndConnectBms",
+        "label": "Bind and connect BMS",
+        "localizedLabels": {
+          "zh-Hans": "绑定并连接 BMS",
+          "zh-Hant": "綁定並連接 BMS"
+        },
+        "trigger": {
+          "messageId": "cConnectControl",
+          "when": [{"field": "control", "oneOf": [2]}]
+        },
+        "enabledWhen": {
+          "variable": "configured",
+          "equals": true
+        },
+        "bind": [
+          {"from": "control", "to": "connectionMode"},
+          {"from": "addressType", "to": "connectedAddressType"},
+          {"from": "address", "to": "connectedAddress"}
+        ],
+        "actions": [
+          {
+            "kind": "set",
+            "variable": "connected",
+            "value": {"kind": "literal", "value": true}
+          },
+          {
+            "kind": "set",
+            "variable": "bound",
+            "value": {"kind": "literal", "value": true}
+          },
+          {
+            "kind": "set",
+            "variable": "report",
+            "value": {"kind": "variable", "name": "bmsTwinReport"}
+          },
+          {
+            "kind": "send",
+            "messageId": "cConnectionFeedback",
+            "values": {
+              "payload": {"kind": "variable", "name": "connectionFeedback"}
+            }
+          }
+        ]
+      },
+      {
+        "id": "disconnectBms",
+        "label": "Disconnect BMS",
+        "localizedLabels": {
+          "zh-Hans": "断开并解绑 BMS",
+          "zh-Hant": "斷開並解綁 BMS"
+        },
+        "trigger": {
+          "messageId": "cDisconnectAndUnbind",
+          "when": []
+        },
+        "actions": [
+          {
+            "kind": "set",
+            "variable": "connected",
+            "value": {"kind": "literal", "value": false}
+          },
+          {
+            "kind": "set",
+            "variable": "bound",
+            "value": {"kind": "literal", "value": false}
+          },
+          {
+            "kind": "set",
+            "variable": "report",
+            "value": {"kind": "variable", "name": "localReport"}
+          }
+        ]
+      }
+    ]
+  },
   "editableFields": {
     "schemaVersion": 1,
     "fields": [

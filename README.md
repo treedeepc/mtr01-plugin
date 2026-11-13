@@ -7,7 +7,8 @@
 - 生成 crate：`leeway-protocol-mtr01-plugin`
 - 默认场景：`mtr01-sim`
 - BMS 列表：`editableCollections.bmsDevices`，协议容量 7，每槽 30 字节
-- 设备参数：A@ 全部字段、B@ 设备信息、基础配置、运行参数、OCV 和状态
+- 设备参数：A@ 全部字段、B@ 设备信息、基础配置、运行参数、OCV 和状态，共 26 个标量配置项
+- BMS 流程：`deviceFunctions` 声明基础配置、即时连接、绑定连接和断开解绑
 
 ## 目录
 
