@@ -388,5 +388,78 @@
       }
     ]
   },
+  "editableCollections": {
+    "schemaVersion": 1,
+    "collections": [
+      {
+        "id": "bmsDevices",
+        "label": "BMS devices",
+        "localizedLabels": {
+          "zh-Hans": "BMS 设备",
+          "zh-Hant": "BMS 裝置"
+        },
+        "target": {
+          "kind": "fixedCapacityRepeatedGroup",
+          "variable": "scanList",
+          "messageId": "cScanList",
+          "fieldId": "scanSlots"
+        },
+        "identityColumns": [
+          "addressType",
+          "address"
+        ],
+        "columns": [
+          {
+            "fieldId": "name",
+            "label": "Name",
+            "localizedLabels": {
+              "zh-Hans": "名称",
+              "zh-Hant": "名稱"
+            },
+            "control": "ascii",
+            "maxBytes": 22,
+            "padding": "leftWithDelimiter"
+          },
+          {
+            "fieldId": "addressType",
+            "label": "Address type",
+            "localizedLabels": {
+              "zh-Hans": "地址类型",
+              "zh-Hant": "位址類型"
+            },
+            "control": "integer"
+          },
+          {
+            "fieldId": "address",
+            "label": "Address",
+            "localizedLabels": {
+              "zh-Hans": "地址",
+              "zh-Hant": "位址"
+            },
+            "control": "hexBytes",
+            "bytes": 6
+          },
+          {
+            "fieldId": "rssi",
+            "label": "RSSI",
+            "localizedLabels": {
+              "zh-Hans": "RSSI",
+              "zh-Hant": "RSSI"
+            },
+            "control": "signedInteger"
+          }
+        ],
+        "ordering": {
+          "fieldId": "rssi",
+          "direction": "descending"
+        },
+        "itemPolicy": {
+          "minimumItems": 0,
+          "trailingEmptyOnly": true,
+          "emptyItemHex": "efefefefefefefefefefefefefefefefefefefefefefefefefefefefefef"
+        }
+      }
+    ]
+  },
   "faults": []
 }

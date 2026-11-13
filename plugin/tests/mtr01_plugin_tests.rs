@@ -539,6 +539,29 @@ fn example_bundle_metadata_matches_runtime_contract() {
                 .is_some_and(|text| !text.is_empty())
         );
     }
+    let collections = scenario["editableCollections"]["collections"]
+        .as_array()
+        .expect("editable collections");
+    assert_eq!(collections.len(), 1);
+    let bms_devices = &collections[0];
+    assert_eq!(bms_devices["id"], "bmsDevices");
+    assert_eq!(bms_devices["target"]["messageId"], "cScanList");
+    assert_eq!(bms_devices["target"]["fieldId"], "scanSlots");
+    assert_eq!(
+        bms_devices["columns"]
+            .as_array()
+            .expect("collection columns")
+            .len(),
+        4
+    );
+    assert_eq!(
+        bms_devices["itemPolicy"]["emptyItemHex"]
+            .as_str()
+            .expect("empty item")
+            .len()
+            / 2,
+        30
+    );
 
     let configuration: Value =
         serde_json::from_str(BUNDLE_CONFIGURATION).expect("configuration JSON");
