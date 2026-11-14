@@ -507,9 +507,14 @@ fn rejects_wrong_abi_and_unknown_handle_as_recoverable_errors() {
 fn example_bundle_metadata_matches_runtime_contract() {
     let manifest: Value = serde_json::from_str(BUNDLE_MANIFEST).expect("manifest JSON");
     assert_eq!(manifest["pluginId"], "com.leeway.mtr01");
+    assert_eq!(manifest["version"], "1.0.1");
     assert_eq!(manifest["abiVersion"], 1);
     assert_eq!(manifest["protocolId"], "mtr01-protocol");
     assert_eq!(manifest["protocolVersion"], "1.5.1");
+    assert_eq!(
+        manifest["protocolDocumentFile"],
+        "Contents/Resources/protocol.md"
+    );
 
     let protocol: Value = serde_json::from_str(BUNDLE_PROTOCOL).expect("protocol JSON");
     assert_eq!(protocol, Mtr01Adapter::new([0; 16]).definition());

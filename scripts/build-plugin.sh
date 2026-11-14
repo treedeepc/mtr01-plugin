@@ -87,8 +87,11 @@ add_check() {
 
 manifest="${bundle_source}/Contents/Resources/plugin.json"
 info_plist="${bundle_source}/Contents/Info.plist"
+protocol_document_source="${project_root}/docs/PROTOCOL.md"
+protocol_document_relative="Contents/Resources/protocol.md"
 require_file "${info_plist}"
 require_file "${manifest}"
+require_file "${protocol_document_source}"
 for resource in protocol.json scenario.json configuration.json; do
     require_file "${bundle_source}/Contents/Resources/${resource}"
 done
@@ -126,6 +129,7 @@ if ! jq -e '
         "^Contents/MacOS/[A-Za-z0-9][A-Za-z0-9._-]{0,121}\\.dylib$"
     ))
     and .protocolFile == "Contents/Resources/protocol.json"
+    and .protocolDocumentFile == "Contents/Resources/protocol.md"
     and .scenarioFile == "Contents/Resources/scenario.json"
     and .configurationFile == "Contents/Resources/configuration.json"
     and (.architectures | length) >= 1
@@ -162,6 +166,11 @@ if [[ "${bundle_identifier}" != "${plugin_id}" ]]; then
     fail template_invalid 4 "Bundle identifier does not match the manifest."
 fi
 add_check bundle_info "Bundle identifier and resource-only plist are valid."
+
+if [[ ! -s "${protocol_document_source}" ]]; then
+    fail template_invalid 4 "Protocol document must not be empty."
+fi
+add_check protocol_document "Original protocol document is present."
 
 if ! jq -e \
     --arg protocol_id "${protocol_id}" \
@@ -350,6 +359,9 @@ mkdir -p "${output_root}/Contents/MacOS"
     "${bundle_source}/Contents/Resources" \
     "${output_root}/Contents/Resources"
 /usr/bin/ditto \
+    "${protocol_document_source}" \
+    "${output_root}/${protocol_document_relative}"
+/usr/bin/ditto \
     "${source_dylib}" \
     "${output_root}/Contents/MacOS/${library_basename}"
 chmod 755 "${output_root}/Contents/MacOS/${library_basename}"
@@ -377,15 +389,21 @@ for architecture in $(/usr/bin/lipo -archs "${source_dylib}"); do
     )"
 done
 
+protocol_document_hash="$(
+    file_hash "${output_root}/${protocol_document_relative}"
+)"
 manifest_tmp="$(
     mktemp "${output_root}/Contents/Resources/.plugin.XXXXXX"
 )"
 jq \
     --arg library "${final_library_hash}" \
+    --arg protocol_document "${protocol_document_hash}" \
     --argjson architectures "${architectures}" \
     '
         .architectures = $architectures
         | .files.librarySha256 = $library
+        | .protocolDocumentFile = "Contents/Resources/protocol.md"
+        | .files.protocolDocumentSha256 = $protocol_document
     ' \
     "${output_root}/Contents/Resources/plugin.json" >"${manifest_tmp}"
 mv "${manifest_tmp}" "${output_root}/Contents/Resources/plugin.json"

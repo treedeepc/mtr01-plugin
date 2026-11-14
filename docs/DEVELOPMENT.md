@@ -44,6 +44,13 @@
 `secretBytes/hex` 输入，由宿主在调用前解码为 wire Base64。不要在日志、错误或
 测试夹具中记录秘密。
 
+## 原始协议文档
+
+`docs/PROTOCOL.md` 保存 MTR01 V1.5.1 的设备原始协议、帧格式、消息字段、
+连接状态和安全边界。构建脚本将它打包为 `Contents/Resources/protocol.md`，
+并把路径和 SHA-256 写入最终 Manifest。模拟器和 AI 通过
+`deviceDebug.simulator.protocol` 以 markdown 分页读取。
+
 ## BMS 设备功能
 
 `deviceFunctions` 只使用 V1.5.1 现有消息，不增加线上字段：

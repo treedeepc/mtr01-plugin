@@ -3,6 +3,7 @@
 本目录是独立 Cargo workspace，可脱离 Leeway 源码完成测试和签名构建。
 
 - 插件 ID：`com.leeway.mtr01`
+- 插件版本：`1.0.1`
 - 协议 ID：`mtr01-protocol`
 - 生成 crate：`leeway-protocol-mtr01-plugin`
 - 默认场景：`mtr01-sim`
@@ -18,6 +19,7 @@
 | `plugin/` | 协议处理器、C ABI 入口和 Rust 测试 |
 | `sdk/` | 当前 ABI v1 与 contracts 的独立源码快照 |
 | `bundle/` | 插件 manifest、协议、模拟场景和配置 |
+| `docs/PROTOCOL.md` | MTR01 V1.5.1 原始协议说明，构建时随插件打包 |
 | `scripts/build-plugin.sh` | 模板校验、Release 构建和稳定身份签名 |
 
 ## 测试
